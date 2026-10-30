@@ -1,0 +1,17 @@
+{
+  "name": "Studious — Structure Your Semester",
+  "short_name": "Studious",
+  "description": "Structure Your Semester — Academic planning, syllabus tracking, class timetable, assignments, projects, and exam prep.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#09090b",
+  "theme_color": "#09090b",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "192x192 512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

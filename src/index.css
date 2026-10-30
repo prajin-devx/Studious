@@ -1,0 +1,53 @@
+@import "tailwindcss";
+
+:root {
+  /* Default base font size increased from 16px to 18px for clear, comfortable readability */
+  font-size: 18px;
+}
+
+@media (max-width: 640px) {
+  :root {
+    font-size: 17.5px;
+  }
+}
+
+html[data-font-size="normal"],
+html[data-font-size="standard"] {
+  font-size: 16px;
+}
+
+html[data-font-size="large"] {
+  font-size: 18px;
+}
+
+@media (max-width: 640px) {
+  html[data-font-size="large"] {
+    font-size: 17.5px;
+  }
+}
+
+html[data-font-size="extra-large"] {
+  font-size: 20px;
+}
+
+@media (max-width: 640px) {
+  html[data-font-size="extra-large"] {
+    font-size: 19.5px;
+  }
+}
+
+html[data-font-size="huge"] {
+  font-size: 22px;
+}
+
+@media (max-width: 640px) {
+  html[data-font-size="huge"] {
+    font-size: 21.5px;
+  }
+}
+
+body {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}

@@ -1,0 +1,6 @@
+{
+  "name": "Studious",
+  "description": "Structure Your Semester — Academic planning, syllabus tracker, class timetable, assignments, and exam prep for university students.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

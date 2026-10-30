@@ -1,0 +1,323 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "Student profile metadata and institution settings",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "maxLength": 128 },
+        "name": { "type": "string", "maxLength": 100 },
+        "email": { "type": "string", "maxLength": 200 },
+        "institution": { "type": "string", "maxLength": 150 },
+        "degree": { "type": "string", "maxLength": 150 },
+        "semester": { "type": "string", "maxLength": 50 },
+        "academicTerm": { "type": "string", "maxLength": 50 },
+        "timeZone": { "type": "string", "maxLength": 50 },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["userId", "name", "email"]
+    },
+    "Subject": {
+      "title": "Subject",
+      "description": "Academic course or subject",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "userId": { "type": "string", "maxLength": 128 },
+        "name": { "type": "string", "maxLength": 120 },
+        "code": { "type": "string", "maxLength": 30 },
+        "semester": { "type": "string", "maxLength": 50 },
+        "instructor": { "type": "string", "maxLength": 100 },
+        "color": { "type": "string", "maxLength": 20 },
+        "credits": { "type": "number" },
+        "isArchived": { "type": "boolean" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["id", "userId", "name", "color"]
+    },
+    "Chapter": {
+      "title": "Chapter",
+      "description": "Unit or chapter within a subject syllabus",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "userId": { "type": "string", "maxLength": 128 },
+        "subjectId": { "type": "string", "maxLength": 128 },
+        "unitNumber": { "type": "string", "maxLength": 30 },
+        "title": { "type": "string", "maxLength": 160 },
+        "order": { "type": "number" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["id", "userId", "subjectId", "title"]
+    },
+    "Topic": {
+      "title": "Topic",
+      "description": "Individual topic or subtopic tracked for syllabus completion",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "userId": { "type": "string", "maxLength": 128 },
+        "subjectId": { "type": "string", "maxLength": 128 },
+        "chapterId": { "type": "string", "maxLength": 128 },
+        "title": { "type": "string", "maxLength": 200 },
+        "status": { "type": "string", "enum": ["not_started", "in_progress", "completed", "needs_revision"] },
+        "estimatedMinutes": { "type": "number" },
+        "notes": { "type": "string", "maxLength": 2000 },
+        "lastStudiedAt": { "type": "string" },
+        "revisionCount": { "type": "number" },
+        "nextRevisionDate": { "type": "string" },
+        "difficulty": { "type": "string", "maxLength": 20 },
+        "order": { "type": "number" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["id", "userId", "subjectId", "chapterId", "title", "status"]
+    },
+    "ClassEvent": {
+      "title": "ClassEvent",
+      "description": "Scheduled class lecture, lab, or tutorial in weekly timetable",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "userId": { "type": "string", "maxLength": 128 },
+        "subjectId": { "type": "string", "maxLength": 128 },
+        "title": { "type": "string", "maxLength": 120 },
+        "dayOfWeek": { "type": "number" },
+        "startTime": { "type": "string", "maxLength": 10 },
+        "endTime": { "type": "string", "maxLength": 10 },
+        "room": { "type": "string", "maxLength": 60 },
+        "faculty": { "type": "string", "maxLength": 100 },
+        "recurrence": { "type": "string", "maxLength": 50 },
+        "color": { "type": "string", "maxLength": 20 },
+        "notes": { "type": "string", "maxLength": 500 },
+        "isCancelled": { "type": "boolean" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["id", "userId", "subjectId", "dayOfWeek", "startTime", "endTime"]
+    },
+    "Assignment": {
+      "title": "Assignment",
+      "description": "Academic homework, lab report, presentation, or quiz",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "userId": { "type": "string", "maxLength": 128 },
+        "subjectId": { "type": "string", "maxLength": 128 },
+        "title": { "type": "string", "maxLength": 160 },
+        "type": { "type": "string", "maxLength": 50 },
+        "description": { "type": "string", "maxLength": 2000 },
+        "dueDate": { "type": "string", "maxLength": 30 },
+        "dueTime": { "type": "string", "maxLength": 10 },
+        "priority": { "type": "string", "enum": ["low", "medium", "high", "urgent"] },
+        "status": { "type": "string", "enum": ["not_started", "in_progress", "completed", "submitted"] },
+        "submissionUrl": { "type": "string", "maxLength": 500 },
+        "subtasks": { "type": "array" },
+        "completedAt": { "type": "string" },
+        "submittedAt": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["id", "userId", "subjectId", "title", "dueDate", "status"]
+    },
+    "Project": {
+      "title": "Project",
+      "description": "Group project, presentation, or term project",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "userId": { "type": "string", "maxLength": 128 },
+        "subjectId": { "type": "string", "maxLength": 128 },
+        "title": { "type": "string", "maxLength": 160 },
+        "description": { "type": "string", "maxLength": 2000 },
+        "projectType": { "type": "string", "maxLength": 60 },
+        "startDate": { "type": "string", "maxLength": 30 },
+        "deadline": { "type": "string", "maxLength": 30 },
+        "status": { "type": "string", "enum": ["planned", "in_progress", "on_hold", "completed", "archived"] },
+        "projectUrl": { "type": "string", "maxLength": 500 },
+        "members": { "type": "array" },
+        "milestones": { "type": "array" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["id", "userId", "title", "deadline", "status"]
+    },
+    "ProjectTask": {
+      "title": "ProjectTask",
+      "description": "Task assigned to a team member within a project",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "userId": { "type": "string", "maxLength": 128 },
+        "projectId": { "type": "string", "maxLength": 128 },
+        "title": { "type": "string", "maxLength": 160 },
+        "description": { "type": "string", "maxLength": 1000 },
+        "assignedMemberId": { "type": "string", "maxLength": 128 },
+        "dueDate": { "type": "string", "maxLength": 30 },
+        "priority": { "type": "string", "enum": ["low", "medium", "high"] },
+        "status": { "type": "string", "enum": ["not_started", "in_progress", "completed"] },
+        "completedAt": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["id", "userId", "projectId", "title", "status"]
+    },
+    "Exam": {
+      "title": "Exam",
+      "description": "Scheduled internal, practical, or semester examination",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "userId": { "type": "string", "maxLength": 128 },
+        "subjectId": { "type": "string", "maxLength": 128 },
+        "title": { "type": "string", "maxLength": 160 },
+        "examType": { "type": "string", "maxLength": 60 },
+        "date": { "type": "string", "maxLength": 30 },
+        "startTime": { "type": "string", "maxLength": 10 },
+        "endTime": { "type": "string", "maxLength": 10 },
+        "center": { "type": "string", "maxLength": 120 },
+        "room": { "type": "string", "maxLength": 60 },
+        "reportingTime": { "type": "string", "maxLength": 10 },
+        "instructions": { "type": "string", "maxLength": 1000 },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["id", "userId", "subjectId", "title", "date", "startTime"]
+    },
+    "StudyTask": {
+      "title": "StudyTask",
+      "description": "Personal study, problem set, or revision task",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "userId": { "type": "string", "maxLength": 128 },
+        "subjectId": { "type": "string", "maxLength": 128 },
+        "linkedTopicId": { "type": "string", "maxLength": 128 },
+        "title": { "type": "string", "maxLength": 160 },
+        "date": { "type": "string", "maxLength": 30 },
+        "startTime": { "type": "string", "maxLength": 10 },
+        "durationMinutes": { "type": "number" },
+        "status": { "type": "string", "enum": ["pending", "completed"] },
+        "notes": { "type": "string", "maxLength": 1000 },
+        "completedAt": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["id", "userId", "title", "date", "status"]
+    },
+    "NotificationItem": {
+      "title": "NotificationItem",
+      "description": "Academic reminder or deadline alert",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "userId": { "type": "string", "maxLength": 128 },
+        "title": { "type": "string", "maxLength": 140 },
+        "message": { "type": "string", "maxLength": 500 },
+        "category": { "type": "string", "maxLength": 40 },
+        "isRead": { "type": "boolean" },
+        "linkUrl": { "type": "string", "maxLength": 200 },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["id", "userId", "title", "message", "isRead"]
+    },
+    "UserSettings": {
+      "title": "UserSettings",
+      "description": "Preferences and schedule configurations",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "maxLength": 128 },
+        "theme": { "type": "string", "maxLength": 20 },
+        "weekStart": { "type": "number" },
+        "quietHoursStart": { "type": "string", "maxLength": 10 },
+        "quietHoursEnd": { "type": "string", "maxLength": 10 },
+        "classReminders": { "type": "boolean" },
+        "assignmentReminders": { "type": "boolean" },
+        "examReminders": { "type": "boolean" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["userId"]
+    },
+    "TestMark": {
+      "title": "TestMark",
+      "description": "Subject test, internal assessment, quiz, or examination mark record",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "userId": { "type": "string", "maxLength": 128 },
+        "subjectId": { "type": "string", "maxLength": 128 },
+        "testName": { "type": "string", "maxLength": 160 },
+        "testType": { "type": "string", "maxLength": 50 },
+        "date": { "type": "string", "maxLength": 30 },
+        "marksObtained": { "type": "number" },
+        "maxMarks": { "type": "number" },
+        "percentage": { "type": "number" },
+        "weightage": { "type": "number" },
+        "targetMarks": { "type": "number" },
+        "grade": { "type": "string", "maxLength": 20 },
+        "topicsCovered": { "type": "string", "maxLength": 500 },
+        "remarks": { "type": "string", "maxLength": 1000 },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["id", "userId", "subjectId", "testName", "marksObtained", "maxMarks", "date"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}/profile/{profileId}": {
+      "schema": "UserProfile",
+      "description": "Student profile record"
+    },
+    "/users/{userId}/subjects/{subjectId}": {
+      "schema": "Subject",
+      "description": "User subjects collection"
+    },
+    "/users/{userId}/chapters/{chapterId}": {
+      "schema": "Chapter",
+      "description": "Syllabus chapters"
+    },
+    "/users/{userId}/topics/{topicId}": {
+      "schema": "Topic",
+      "description": "Syllabus topic checklist items"
+    },
+    "/users/{userId}/classes/{classId}": {
+      "schema": "ClassEvent",
+      "description": "Weekly class timetable events"
+    },
+    "/users/{userId}/assignments/{assignmentId}": {
+      "schema": "Assignment",
+      "description": "Homework and academic assignments"
+    },
+    "/users/{userId}/projects/{projectId}": {
+      "schema": "Project",
+      "description": "Group and individual projects"
+    },
+    "/users/{userId}/projectTasks/{taskId}": {
+      "schema": "ProjectTask",
+      "description": "Tasks associated with projects"
+    },
+    "/users/{userId}/exams/{examId}": {
+      "schema": "Exam",
+      "description": "Upcoming examinations"
+    },
+    "/users/{userId}/studyTasks/{taskId}": {
+      "schema": "StudyTask",
+      "description": "Personal revision and study tasks"
+    },
+    "/users/{userId}/testMarks/{markId}": {
+      "schema": "TestMark",
+      "description": "User subject test marks and assessment scores"
+    },
+    "/users/{userId}/notifications/{notificationId}": {
+      "schema": "NotificationItem",
+      "description": "User notifications"
+    },
+    "/users/{userId}/settings/{settingsId}": {
+      "schema": "UserSettings",
+      "description": "User configuration"
+    }
+  }
+}

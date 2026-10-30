@@ -1,0 +1,1793 @@
+# MODULUS — MASTER PRODUCT, DESIGN & DEVELOPMENT SPECIFICATION
+
+## 1. PROJECT OVERVIEW
+
+Build **MODULUS**, a premium, feature-rich academic planning and tracking application designed primarily for university and college students.
+
+**Product tagline:** Structure Your Semester.
+
+MODULUS helps students organise their academic lives through a unified workspace for:
+
+- College class timetables
+- Subject and syllabus tracking
+- Chapter and topic checklists
+- Assignments and homework
+- Group projects and team responsibilities
+- Examination schedules and hall ticket processing
+- Personal study tasks and revision reminders
+- Academic progress tracking
+- Notifications and deadline management
+
+The application should help students answer five questions:
+
+1. What classes and commitments do I have today?
+2. What academic work needs my attention?
+3. How much of my syllabus have I completed?
+4. Which assignments, projects, and examinations are approaching?
+5. What should I prioritise next?
+
+Build a complete, functional application with persistent data, working interactions, a polished interface, reliable scheduling logic, and properly implemented core workflows.
+
+Do not build merely a landing page, static dashboard, or visual prototype.
+
+Every major feature must connect meaningfully with the others.
+
+---
+
+# 2. PRODUCT VISION AND PRINCIPLES
+
+MODULUS should feel like a professional academic productivity product rather than a conventional student diary.
+
+Follow these principles:
+
+### Clarity over complexity
+
+Students should understand the interface immediately. Avoid unnecessary configuration, excessive menus, and complicated workflows.
+
+### Academic tracking over content storage
+
+MODULUS tracks academic information and progress. It does not act as a repository for lecture notes, textbooks, assignment files, or other learning materials.
+
+The only core document-upload workflows are for:
+- Timetable PDFs
+- Syllabus PDFs
+- Examination hall ticket PDFs
+
+Use uploaded documents to extract relevant structured information. Do not build a general-purpose file manager.
+
+### Student-controlled progress
+
+Students decide when a topic, assignment, task, or project milestone is complete. Do not automatically mark academic work as completed based solely on elapsed time or document access.
+
+### Reliable functionality
+
+Use deterministic application logic for scheduling, progress calculations, recurring events, deadline detection, and notifications.
+
+### Responsible AI
+
+AI is limited to reading supported academic PDFs, extracting structured information, and proposing updates to existing academic records. It is not a general-purpose chatbot or AI tutor.
+
+### Privacy by design
+
+Collect only the information necessary to operate the application. Process sensitive documents securely and avoid retaining original PDFs unnecessarily.
+
+### Cross-device usability
+
+The application must work well on desktop, tablet, and mobile, with persistent data across authenticated devices.
+
+### Calm productivity
+
+Help students organise their work without guilt-inducing language, manipulative streaks, artificial urgency, or unrealistic study schedules.
+
+---
+
+# 3. TARGET USERS
+
+Primary users:
+- University and college students
+- Undergraduate students managing multiple subjects
+- Students following semester-based curricula
+- Students preparing for internal and semester examinations
+- Students with regular homework, assignments, and laboratory work
+- Students participating in group projects, presentations, and hackathons
+
+The initial product should be particularly useful to students managing a busy weekly class timetable and a syllabus containing multiple units, chapters, and topics.
+
+Design the data model so the application can support different institutions and academic systems without requiring institution-specific code for every feature.
+
+---
+
+# 4. INFORMATION ARCHITECTURE
+
+Create six primary navigation sections:
+
+1. **Home**
+2. **Timetable**
+3. **Subjects**
+4. **Assignments**
+5. **Projects**
+6. **Exams**
+
+Provide secondary access to:
+- Notifications
+- Academic progress
+- Study tasks and revision
+- Search
+- Settings
+- Profile
+- Backup and data export
+
+Study tasks and progress should be accessible from the Home and Subjects pages without unnecessarily adding more primary navigation items.
+
+### Desktop navigation
+
+Use a persistent, collapsible sidebar with:
+- MODULUS wordmark
+- Six main sections
+- Notification indicator
+- User profile and settings
+
+### Mobile navigation
+
+Use a compact, touch-friendly navigation system that prioritises Home, Timetable, Subjects, Assignments, Projects, and Exams.
+
+If six items do not fit comfortably in the mobile navigation, use a smaller bottom navigation with an accessible More menu. Do not force tiny icons or unreadable labels.
+
+---
+
+# 5. DESIGN SYSTEM AND BRAND IDENTITY
+
+Develop a distinctive visual identity for MODULUS.
+
+## Brand personality
+
+- Professional
+- Precise
+- Intelligent
+- Minimal
+- Trustworthy
+- Modern
+- Calm
+- Academically credible
+
+The product should feel suitable for a serious university student and sophisticated enough to compete with established productivity software.
+
+## Visual direction
+
+Use a premium editorial software aesthetic inspired by the clarity of Linear, the flexibility of Notion, and the organisation of well-designed calendar applications.
+
+Do not copy any existing product's interface.
+
+### Colour system
+
+Create a cohesive palette consisting of:
+- Deep ink or charcoal for primary text and dark surfaces
+- Warm white or a subtle neutral background
+- Muted grey for secondary text and dividers
+- One distinctive accent colour, such as cobalt blue or restrained indigo
+- Semantic colours for success, warning, and error states
+
+Use colours consistently and preserve accessibility.
+
+Support both light and dark themes.
+
+### Typography
+
+Use a highly readable modern sans-serif typeface. Establish a consistent hierarchy for:
+- Page titles
+- Section headings
+- Body text
+- Metadata
+- Labels
+- Dates and times
+- Progress indicators
+
+Use tabular numerals for times, countdowns, and numerical progress when appropriate.
+
+### Components
+
+Create a consistent component system for:
+- Buttons
+- Inputs
+- Dropdowns
+- Dialogs
+- Drawers
+- Date and time pickers
+- Calendar events
+- Subject cards
+- Assignment rows
+- Project cards
+- Checklists
+- Progress bars
+- Status indicators
+- Notification items
+- Empty states
+- Loading skeletons
+- Toast messages
+- Confirmation dialogs
+- Search results
+
+Use consistent spacing, borders, radii, shadows, focus states, and hover states.
+
+### Design quality requirements
+
+Avoid:
+- Generic AI dashboard aesthetics
+- Excessive gradients
+- Glassmorphism everywhere
+- Oversized cards containing little information
+- Repetitive rounded rectangles for every component
+- Unnecessary decorative illustrations
+- Excessive animations
+- Too many accent colours
+- Crowded dashboards
+- Unexplained abbreviations
+
+Every element must serve a clear purpose.
+
+Use purposeful animations only when they improve feedback or orientation.
+
+---
+
+# 6. HOME — ACADEMIC DASHBOARD
+
+The Home page should provide an actionable overview of the student's academic day.
+
+## A. Personal greeting and date
+
+Display:
+- A contextual greeting
+- Current date and weekday
+- Semester or academic term, if configured
+- A compact summary of today's workload
+
+Do not rely on greetings alone to fill the page. Prioritise useful information.
+
+## B. Today's timetable
+
+Show today's classes chronologically.
+
+Each class should display:
+- Subject name
+- Start and end time
+- Classroom or laboratory location, if available
+- Optional faculty name
+- Class status
+- Time until the next class
+
+Highlight the current class and the next upcoming class.
+
+If the student has no classes, display the next scheduled class and a helpful empty state.
+
+## C. Today's academic tasks
+
+Display:
+- Study tasks
+- Homework
+- Assignment deadlines
+- Project tasks assigned to the student
+- Revision reminders
+
+Provide direct completion controls where appropriate.
+
+## D. Upcoming examinations
+
+Display the nearest examinations with:
+- Subject
+- Examination date
+- Countdown
+- Syllabus completion
+- Incomplete-topic indicator
+
+## E. Upcoming deadlines
+
+Display assignments and project milestones ordered by urgency and due date.
+
+Use clear, non-alarming indicators for overdue items.
+
+## F. Academic progress summary
+
+Show:
+- Overall syllabus completion
+- Subject-level progress
+- Tasks completed this week
+- Topics needing revision
+- Active project progress
+
+Clearly explain how each percentage is calculated.
+
+## G. Quick actions
+
+Provide a global quick-add interface for:
+- Study task
+- Assignment
+- Class
+- Subject
+- Examination
+- Project
+
+Where possible, open a small contextual form instead of navigating through multiple pages.
+
+## H. Additional dashboard micro-features
+
+Implement:
+- Free-period indicator
+- Next-class countdown
+- Recently completed items
+- Recently updated academic records
+- Three most time-sensitive items
+- Weekly academic overview
+- Continue where you left off
+- Quick access to recently viewed subjects
+- Customisable dashboard sections, if this can be implemented without unnecessary complexity
+- Useful empty states for new users
+
+Never display fabricated progress or placeholder academic information as if it belongs to the user.
+
+---
+
+# 7. TIMETABLE — CLASS SCHEDULE MANAGEMENT
+
+Build a complete timetable management system.
+
+## A. Timetable views
+
+Support:
+- Day view
+- Week view
+- Calendar-style month view for relevant events
+- Chronological list view
+- Current-time indicator
+- Subject colour coding
+
+The weekly view should be the primary timetable experience.
+
+## B. Class information
+
+Each class event should support:
+- Subject
+- Start time
+- End time
+- Day or date
+- Classroom or laboratory
+- Optional faculty name
+- Optional notes
+- Recurrence rule
+- Optional reminder
+- Event status
+- Creation and modification timestamps
+
+## C. Recurring schedules
+
+Support:
+- Weekly recurring classes
+- Different schedules on different weekdays
+- Effective start and end dates
+- Optional academic-term boundaries
+- Week A and Week B rotations
+- Other simple rotating schedules
+- Holidays and timetable exceptions
+- Cancelled classes
+- Rescheduled classes
+
+Allow students to edit:
+- Only this occurrence
+- This occurrence and future occurrences
+- The entire recurring series
+
+Make the consequences clear before saving.
+
+## D. PDF timetable import
+
+Allow students to upload a timetable PDF.
+
+Processing workflow:
+
+1. Validate the file type and size.
+2. Extract text and table structure using suitable PDF-processing tools.
+3. Use OCR when the PDF is scanned and OCR is supported.
+4. Use AI-assisted extraction where necessary.
+5. Convert extracted information into structured class events.
+6. Identify ambiguous or incomplete fields.
+7. Display a timetable preview.
+8. Allow individual corrections.
+9. Detect overlaps and duplicate events.
+10. Save only after user confirmation.
+
+The parser should attempt to identify:
+- Weekdays
+- Subjects
+- Course codes
+- Start and end times
+- Classroom locations
+- Faculty details, if available
+- Rotating timetable patterns, if identifiable
+
+Do not assume that every PDF follows the same layout.
+
+If extraction is unreliable, explain the problem and offer manual entry.
+
+## E. Manual timetable management
+
+Users must be able to:
+- Create classes manually
+- Edit events
+- Delete events
+- Duplicate events
+- Drag and drop events on supported desktop layouts
+- Move classes to another day
+- Adjust start and end times
+- Mark classes as cancelled
+- Create temporary timetable changes
+- Add personal commitments when needed
+
+Warn about conflicting events without silently preventing legitimate user choices.
+
+## F. Timetable micro-features
+
+Implement:
+- Free-period detection
+- Time until next class
+- Classroom/location shortcut
+- Quick edit
+- Recently modified timetable events
+- Conflict warnings
+- Temporary schedule overrides
+- Subject colour consistency across the app
+- Timetable print view
+- Calendar export using a supported format such as ICS
+- Week navigation
+- Jump to today
+- Optional timetable-change history
+
+Do not implement automatic institution-wide timetable synchronisation unless a supported source is explicitly configured.
+
+---
+
+# 8. SUBJECTS — SYLLABUS AND TOPIC TRACKER
+
+The Subjects page is a core differentiator of MODULUS.
+
+Build a structured academic syllabus manager that allows students to understand and track their syllabus at chapter and topic level.
+
+## A. Subject management
+
+Each subject should contain:
+- Subject name
+- Course code, optionally
+- Semester
+- Optional instructor
+- Subject colour
+- Optional credits
+- Chapters and topics
+- Linked classes
+- Linked assignments
+- Linked examinations
+- Linked study tasks
+- Progress summary
+
+Allow users to:
+- Create subjects
+- Edit subjects
+- Archive subjects
+- Restore archived subjects
+- Reorder subjects
+- Delete subjects with confirmation
+- Search and filter subjects
+
+## B. Syllabus hierarchy
+
+Support the following hierarchy:
+
+Subject → Unit → Chapter → Topic → Optional subtopic.
+
+The hierarchy should remain flexible because academic syllabuses vary between institutions.
+
+Allow students to use units or chapters without requiring every level.
+
+## C. Topic tracking
+
+Each topic should have one of these states:
+- Not Started
+- In Progress
+- Completed
+- Needs Revision
+
+Allow students to change states manually.
+
+Each topic may also include:
+- Estimated study duration
+- Optional personal notes
+- Last-studied date
+- Revision count
+- Optional next revision date
+- Optional difficulty rating
+- Position within the chapter
+
+Do not store uploaded lecture notes or textbooks against topics. Allow links or brief personal notes where appropriate, but do not turn the product into a file repository.
+
+## D. Syllabus checklist
+
+Provide:
+- Individual topic checkboxes
+- Chapter completion summaries
+- Expandable and collapsible chapters
+- Expand/collapse all
+- Topic search
+- Bulk topic creation
+- Drag-and-drop reordering where appropriate
+- Quick status changes
+- Undo accidental changes
+- Clear visual states
+- Keyboard-accessible controls
+
+## E. Syllabus PDF import
+
+Allow a student to upload a syllabus PDF.
+
+Extract:
+- Subject names
+- Units
+- Chapters
+- Topics
+- Subtopics, when identifiable
+
+Use the following workflow:
+
+1. Upload and validate the PDF.
+2. Extract text and relevant structure.
+3. Use OCR if necessary and supported.
+4. Use AI only when required to interpret the syllabus structure.
+5. Produce structured data matching a defined schema.
+6. Show the extracted hierarchy.
+7. Allow the student to edit, add, remove, and reorder entries.
+8. Save the syllabus only after confirmation.
+
+Preserve source references during extraction where practical.
+
+Never invent a chapter or topic simply to fill a missing section.
+
+## F. Progress calculation
+
+Use deterministic calculations.
+
+Chapter completion:
+
+Completed topics divided by total applicable topics.
+
+Subject completion:
+
+Completed topics across the subject divided by total applicable topics.
+
+Overall syllabus completion:
+
+Completed topics across active subjects divided by total applicable topics across those subjects.
+
+Define how empty chapters and subjects are handled so they do not produce division-by-zero errors or misleading percentages.
+
+Treat archived subjects according to a documented, consistent rule.
+
+Display progress as:
+- Percentage
+- Progress bar
+- Completed/total count
+
+For example: 12 of 20 topics completed — 60%.
+
+Do not automatically mark parent chapters as completed unless their completion status is derived transparently from their child topics.
+
+## G. Revision tracking
+
+Allow students to mark a topic as needing revision.
+
+Optional revision functionality:
+- Set a next revision date
+- Track revision count
+- Record the last review
+- Show topics due for revision
+- Display revision reminders
+- Remove a topic from the revision list when the student chooses
+
+Use simple configurable revision intervals.
+
+Do not claim that a student has mastered a topic simply because they marked it completed.
+
+## H. Subject micro-features
+
+Implement:
+- Subject colour coding
+- Chapter-level progress
+- Topic-level status
+- Recently studied topics
+- Last-studied indicator
+- Revision counter
+- Bulk topic creation from pasted text
+- Search across chapters and topics
+- Undo completion
+- Expand/collapse controls
+- Syllabus checklist export to PDF or print
+- Quick-add topic
+- Quick-add chapter
+- Topic status filters
+- A list of incomplete topics for the next examination
+- Optional topic difficulty ratings
+- Optional estimated study duration
+
+---
+
+# 9. ASSIGNMENTS AND HOMEWORK
+
+Build a dedicated assignment and homework tracker.
+
+This page must make academic obligations easy to capture, organise, and complete.
+
+## A. Assignment types
+
+Support:
+- Homework
+- Written assignment
+- Laboratory work
+- Practical work
+- Report
+- Presentation
+- Quiz or assessment
+- Reading task
+- Other
+
+## B. Assignment fields
+
+Each record should include:
+- Title
+- Subject
+- Type
+- Description
+- Assigned date, optionally
+- Due date
+- Due time, optionally
+- Estimated effort, optionally
+- Priority
+- Status
+- Optional submission link
+- Optional linked syllabus topics
+- Personal checklist
+- Reminder preferences
+- Completion date
+- Submission date, when applicable
+- Creation and modification timestamps
+
+## C. Assignment statuses
+
+Support:
+- Not Started
+- In Progress
+- Completed
+- Submitted
+
+Completed and Submitted must be distinct states.
+
+Students may finish work before submitting it, and not every task requires a formal submission.
+
+## D. Assignment management
+
+Allow students to:
+- Add assignments manually
+- Edit assignments
+- Delete assignments with confirmation
+- Duplicate an assignment
+- Filter by subject
+- Filter by type
+- Filter by status
+- Sort by deadline
+- View overdue items
+- View items due today
+- View items due this week
+- Add subtasks
+- Add reminders
+- Mark assignments complete
+- Mark assignments submitted
+- Record a submission URL
+- Link assignments to syllabus topics
+- Search assignments
+- Archive completed assignments
+
+## E. Deadline management
+
+Provide:
+- Deadline countdown
+- Upcoming deadline indicators
+- Overdue indicators
+- Configurable advance reminders
+- Conflict warnings when multiple deadlines are close together
+- A deadline calendar
+- A weekly workload summary
+
+Avoid artificial urgency or overly aggressive warning colours.
+
+## F. Assignment micro-features
+
+Implement:
+- Quick-add assignment
+- Duplicate assignment
+- Undo completion
+- Pending-work count
+- Recurring homework
+- Optional personal notes
+- Subtask checklist
+- Recently updated assignments
+- Search and filters
+- Bulk completion or archival where safe
+- Confirmation before destructive actions
+- Clear status labels
+- Deadline conflict warnings
+- Subject colour labels
+- Quick status change from the Home page
+
+Do not store assignment documents or homework files.
+
+A submission link may be stored as a URL. The application should not submit work on the student's behalf.
+
+---
+
+# 10. PROJECTS — GROUP PROJECT MANAGEMENT
+
+Create a dedicated Projects page for academic mini-projects, laboratory projects, hackathons, presentations, and group assignments.
+
+The first version should provide project organisation without requiring a complex collaborative platform.
+
+## A. Project information
+
+Each project should contain:
+- Project title
+- Description
+- Subject or course
+- Project type
+- Start date
+- Deadline
+- Project status
+- Team members
+- Roles and responsibilities
+- Tasks
+- Milestones
+- Progress
+- Optional external project URL
+- Brief personal notes
+- Creation and modification timestamps
+
+## B. Project statuses
+
+Support:
+- Planned
+- In Progress
+- On Hold
+- Completed
+- Archived
+
+## C. Group members and roles
+
+Allow users to record team members.
+
+Each member record may contain:
+- Name
+- Role
+- Optional contact information
+- Assigned responsibilities
+- Optional notes
+
+Example roles:
+- Team Leader
+- Research Lead
+- Hardware Lead
+- Software Lead
+- Documentation Lead
+- Testing Lead
+- Presentation Lead
+
+Roles must be editable, and multiple people may share a role.
+
+Do not require team members to create accounts.
+
+In the initial version, team members are records maintained by the project owner. Recording a person does not grant them access to the project.
+
+Avoid collecting unnecessary personal or contact information.
+
+## D. Project task management
+
+Each project task should include:
+- Title
+- Description
+- Assigned member
+- Due date
+- Priority
+- Status
+- Completion date
+- Optional checklist
+
+Support:
+- Add, edit, and delete tasks
+- Assign tasks to recorded team members
+- Filter by member
+- Filter by status
+- Sort by deadline
+- Mark tasks complete
+- Identify overdue tasks
+- View the current student's responsibilities
+- Duplicate tasks
+- Undo completion
+
+## E. Project milestones
+
+Allow students to define milestones such as:
+- Topic selection
+- Research completion
+- Design approval
+- Prototype completion
+- Testing
+- Report completion
+- Final presentation
+- Submission
+
+Each milestone should support a title, due date, status, and optional notes.
+
+## F. Project progress
+
+Display:
+- Overall project status
+- Completed versus total tasks
+- Milestone completion
+- Upcoming deadlines
+- Overdue tasks
+- Tasks assigned to each team member
+
+Use a clearly defined progress calculation.
+
+For example, task-based progress may be calculated from completed tasks divided by total tasks. If milestones are used instead, clearly identify that method.
+
+Do not mix task and milestone percentages arbitrarily.
+
+## G. Project micro-features
+
+Implement:
+- Project templates
+- Duplicate project
+- Archive completed projects
+- Restore archived projects
+- Team workload overview
+- My responsibilities filter
+- Upcoming milestone indicators
+- Deadline warnings
+- Quick-add task
+- Role editing
+- Member editing
+- Task assignment
+- Progress summary
+- External project link
+- Search and filters
+- Project checklist
+- Print-friendly project summary
+
+## H. Scope restrictions
+
+Do not build:
+- Group chat
+- Real-time collaborative editing
+- Complex team permissions
+- Mandatory member invitations
+- Video meetings
+- Shared document storage
+- Team social feeds
+
+These are outside the initial product scope.
+
+---
+
+# 11. EXAMS — EXAMINATION TRACKER
+
+Create a dedicated examination management workspace.
+
+## A. Examination information
+
+Each exam should support:
+- Subject
+- Exam title
+- Exam type
+- Date
+- Start time
+- End time, optionally
+- Examination centre
+- Room or hall, when available
+- Reporting time, when relevant
+- Optional instructions
+- Linked syllabus
+- Reminder preferences
+- Creation and modification timestamps
+
+Support:
+- Internal examinations
+- Semester examinations
+- Practical examinations
+- Laboratory assessments
+- Viva examinations
+- Other academic assessments
+
+## B. Hall ticket PDF processing
+
+Allow students to upload hall ticket PDFs for extraction of relevant examination details.
+
+Extract, when available:
+- Examination subject
+- Course or paper code
+- Exam date
+- Start time
+- End time
+- Examination centre
+- Room or hall
+- Reporting time
+- Other relevant schedule details
+
+Processing workflow:
+
+1. Validate file type and size.
+2. Process the PDF securely.
+3. Extract text and table structure.
+4. Use OCR for scanned pages where supported.
+5. Use AI-assisted extraction if necessary.
+6. Display the extracted details for review.
+7. Allow the student to correct ambiguous information.
+8. Detect duplicate examinations and possible clashes.
+9. Save only after confirmation.
+10. Delete the original upload according to the documented retention policy.
+
+Hall tickets may contain personal identifiers and photographs.
+
+Do not extract, display, or store unrelated personal information unless explicitly necessary. Do not retain the original hall ticket by default.
+
+Never assume that every hall ticket uses the same layout.
+
+## C. Examination calendar
+
+Provide:
+- Chronological exam list
+- Calendar view
+- Countdown to the next exam
+- Days remaining
+- Subject-level syllabus completion
+- Incomplete topics
+- Topics needing revision
+- Exam reminders
+- Clash warnings
+
+## D. Exam preparation overview
+
+For each examination, show:
+- Total syllabus topics
+- Completed topics
+- Remaining topics
+- Topics marked for revision
+- Completion percentage
+- Upcoming linked study tasks
+
+Do not claim that the student is ready for an exam solely from syllabus completion.
+
+## E. Exam micro-features
+
+Implement:
+- Next exam card
+- Days-remaining indicator
+- Incomplete syllabus list
+- Revision-needed list
+- Examination details checklist
+- Reporting-time reminder
+- Examination-centre details
+- Duplicate detection
+- Clash warnings
+- Manual exam creation
+- Editable extracted data
+- Exam history
+- Calendar export where appropriate
+
+---
+
+# 12. STUDY TASKS AND REVISION
+
+Provide a lightweight study-task system accessible from Home and Subjects.
+
+This is distinct from formal assignments.
+
+## A. Study task examples
+
+- Revise eigenvalues
+- Practise differential equations
+- Review a completed chapter
+- Prepare for a laboratory session
+- Revisit a difficult topic
+- Prepare a subject before the next class
+
+## B. Study task fields
+
+Support:
+- Title
+- Subject
+- Optional linked topic
+- Date
+- Optional start time
+- Optional estimated duration
+- Status
+- Optional reminder
+- Optional notes
+- Completion timestamp
+
+## C. Study task features
+
+Implement:
+- Create, edit, delete, and complete tasks
+- Quick-add
+- Filter by subject
+- View today's tasks
+- View upcoming tasks
+- View completed tasks
+- Link tasks to topics
+- Mark tasks for revision
+- Reschedule tasks manually
+- Optional focus timer
+- Optional post-session reflection
+
+## D. Rescheduling behaviour
+
+If a task is not completed:
+- Keep its state visible.
+- Allow the student to reschedule it.
+- Offer reasonable available time slots where scheduling support is implemented.
+- Respect existing commitments.
+- Warn about conflicts.
+- Never silently move locked events or create impossible schedules.
+
+The focus timer must not automatically mark a topic as completed.
+
+---
+
+# 13. DETERMINISTIC SCHEDULING ENGINE
+
+Implement a lightweight scheduling module to help organise study tasks and reminders.
+
+This is a rule-based feature, not an AI-generated planner.
+
+## Inputs
+
+Consider:
+- Class timetable
+- Personal commitments
+- Existing study tasks
+- Assignment deadlines
+- Upcoming examinations
+- Available time
+- Optional estimated duration
+- User-selected priorities
+- Preferred study times
+- Maximum daily study duration
+- User-defined breaks
+- Locked events and sessions
+
+## Requirements
+
+The scheduler should:
+1. Identify available time slots.
+2. Avoid conflicts with existing events.
+3. Respect the user's preferences.
+4. Avoid scheduling during known unavailable periods.
+5. Respect maximum daily study limits.
+6. Distribute work across available days where possible.
+7. Prioritise approaching deadlines transparently.
+8. Offer alternative time slots when a conflict occurs.
+9. Explain why a suggested slot is available.
+10. Allow students to accept, reject, or modify suggestions.
+
+Do not implement an elaborate optimisation engine in the initial version.
+
+A simple, reliable scheduling algorithm is preferable to a complicated system that is difficult to debug.
+
+The scheduler must not assume that every free calendar slot is available for studying.
+
+---
+
+# 14. NOTIFICATIONS AND REMINDERS
+
+Notifications are a core product feature.
+
+## A. Notification categories
+
+Support reminders for:
+- Upcoming classes
+- Upcoming examinations
+- Assignment deadlines
+- Homework deadlines
+- Study tasks
+- Revision dates
+- Project tasks
+- Project milestones
+- Relevant timetable changes
+
+## B. Notification preferences
+
+Allow users to:
+- Enable or disable notification categories
+- Configure advance reminder intervals
+- Configure quiet hours
+- Choose a time zone
+- Snooze eligible notifications
+- Mark notifications as read
+- Open the relevant record from a notification
+- Configure a daily summary
+- Configure a weekly overview
+- Disable nonessential reminders
+
+## C. Notification delivery
+
+Implement:
+- In-app notification centre
+- Persistent notification records
+- Browser push notifications where supported
+- Service worker support where appropriate
+- Server-side reminder scheduling
+- Duplicate-delivery prevention
+- Retry handling
+- Delivery status where supported
+- Time-zone-aware scheduling
+
+Do not rely exclusively on browser timers or an open browser tab for important reminders.
+
+Explain browser notification permissions clearly.
+
+If push permission is denied, the application must remain usable.
+
+Avoid excessive notifications. Respect completed states, quiet hours, and user preferences.
+
+---
+
+# 15. ACADEMIC PROGRESS AND ANALYTICS
+
+Build a concise academic progress area accessible from Home and Subjects.
+
+## Metrics
+
+Include:
+- Overall syllabus completion
+- Completion by subject
+- Chapter completion
+- Topics completed
+- Topics remaining
+- Topics needing revision
+- Assignments completed
+- Assignments pending
+- Study tasks completed this week
+- Active projects
+- Project task completion
+- Upcoming examination workload
+
+## Visualisations
+
+Use:
+- Subject progress bars
+- Chapter completion indicators
+- Weekly task completion
+- A simple deadline timeline
+- Optional subject-level comparison
+
+Do not overwhelm users with dozens of charts.
+
+Do not present a fabricated academic score, intelligence score, or unsupported prediction.
+
+Clearly distinguish:
+- Completed checklist items
+- Time spent
+- Self-reported confidence
+- Actual grades, if the student chooses to record them in a future version
+
+The initial product does not require a grade-prediction engine.
+
+---
+
+# 16. GLOBAL SEARCH AND QUICK ACTIONS
+
+Implement a lightweight global search.
+
+Search across:
+- Subjects
+- Chapters
+- Topics
+- Assignments
+- Study tasks
+- Projects
+- Project members
+- Examinations
+- Timetable entries
+
+Search results should display the record type and relevant context.
+
+Clicking a result should open the correct page or detail panel.
+
+Implement a global quick-add action available from the main application layout.
+
+The quick-add menu should allow users to create:
+- Study task
+- Assignment
+- Subject
+- Class
+- Examination
+- Project
+
+Where appropriate, allow creation without leaving the current page.
+
+Use keyboard shortcuts on desktop for common actions when practical, and provide an accessible way to discover them.
+
+---
+
+# 17. PDF PROCESSING AND AI ARCHITECTURE
+
+AI has a deliberately restricted role.
+
+## Permitted AI operations
+
+Use AI only to:
+1. Read supported timetable PDFs.
+2. Read supported syllabus PDFs.
+3. Read supported hall ticket PDFs.
+4. Extract structured academic information from those documents.
+5. Compare newly extracted information with existing academic records.
+6. Propose changes to those records.
+7. Explain ambiguities in extracted information.
+
+Do not build a general-purpose chatbot, AI tutor, assignment-answer generator, or AI-generated motivational assistant.
+
+## Extraction architecture
+
+Use ordinary PDF text extraction and table parsing first.
+
+Use OCR when the PDF contains scanned pages and OCR is supported.
+
+Use an AI model only where semantic interpretation is necessary.
+
+The extraction pipeline should return schema-validated structured data, not unstructured prose.
+
+Validate:
+- Dates
+- Times
+- Subject names
+- Course codes
+- Weekdays
+- Chapter hierarchy
+- Required fields
+- Duplicate records
+
+Preserve source references where practical.
+
+## Update approval workflow
+
+When a new PDF appears to contain updated information:
+
+1. Read the new document.
+2. Compare it with existing records.
+3. Produce a proposed change set.
+4. Identify additions, modifications, and potential removals.
+5. Show the differences to the student.
+6. Identify ambiguous changes.
+7. Allow individual approval or rejection.
+8. Apply approved changes transactionally.
+9. Preserve relevant change history.
+10. Provide undo or restoration where practical.
+
+Never silently replace confirmed academic information.
+
+A newly uploaded hall ticket must not automatically delete an examination simply because that examination is absent from the new document.
+
+## AI failure handling
+
+If extraction fails:
+- Preserve existing records.
+- Explain the failure.
+- Allow manual entry.
+- Avoid partial writes that leave the timetable inconsistent.
+
+The core application must work without an AI provider.
+
+---
+
+# 18. PRIVACY AND DOCUMENT RETENTION
+
+Implement secure PDF handling.
+
+Requirements:
+- Validate file types and sizes.
+- Avoid trusting file extensions alone.
+- Process uploads through an appropriate secure server-side workflow.
+- Prevent unauthorised access to uploaded files.
+- Avoid logging document contents unnecessarily.
+- Avoid retaining original hall tickets by default.
+- Define a retention policy for timetable and syllabus uploads.
+- Allow users to remove uploaded documents and associated temporary data.
+- Store extracted structured information separately from temporary source files.
+- Clearly explain when a document is sent to a third-party AI provider.
+- Obtain appropriate consent before using an external AI service.
+- Never expose private academic records to other users.
+
+Where practical, delete temporary document data after successful extraction and confirmation.
+
+Do not retain hall ticket photographs, signatures, or unrelated personal identifiers.
+
+The app must not use uploaded academic documents for unrelated purposes.
+
+---
+
+# 19. SETTINGS, BACKUP, AND DATA MANAGEMENT
+
+Create a dedicated settings area.
+
+## Profile and preferences
+
+Allow users to manage:
+- Display name
+- Institution, optionally
+- Degree or course, optionally
+- Current semester
+- Academic term
+- Time zone
+- Week-start preference
+- Preferred theme
+- Subject colours
+- Reminder preferences
+- Quiet hours
+
+## Data backup
+
+Provide a way to export structured academic data in a documented format.
+
+Support export of relevant records such as:
+- Subjects
+- Syllabus structure
+- Topic statuses
+- Timetable events
+- Assignments
+- Examinations
+- Projects
+- Project members and tasks
+- Study tasks
+- User preferences, where appropriate
+
+Do not automatically include original PDFs in the export.
+
+Provide a corresponding import and restore workflow.
+
+Validate imported data and show a preview before applying changes.
+
+Prevent duplicate records where possible.
+
+## Other settings
+
+Include:
+- Data deletion
+- Account management
+- Notification preferences
+- Theme selection
+- Backup and restore
+- Calendar export
+- Privacy information
+
+Data deletion must be explicit and protected against accidental activation.
+
+---
+
+# 20. TECHNICAL STACK
+
+Use a maintainable modern web architecture.
+
+## Frontend
+
+- React
+- TypeScript
+- Vite
+- Tailwind CSS
+- An accessible, consistent component library
+- A suitable calendar component or calendar library
+- A reliable date/time library
+- A charting library for the few analytics visualisations that are needed
+
+Use strict TypeScript and reusable components.
+
+Keep the architecture modular by feature.
+
+## Backend
+
+Use Supabase for:
+- PostgreSQL
+- Authentication
+- Row Level Security
+- Database persistence
+- Appropriate server-side functions
+- Realtime updates where useful
+
+Use Supabase Edge Functions or another secure server-side runtime for PDF-processing orchestration and AI API calls where appropriate.
+
+## Suggested database entities
+
+Create appropriate tables for:
+- Profiles
+- Academic terms
+- Subjects
+- Syllabus units
+- Chapters
+- Topics
+- Class events
+- Recurrence rules
+- Timetable exceptions
+- Assignments
+- Assignment subtasks
+- Examinations
+- Study tasks
+- Projects
+- Project members
+- Project tasks
+- Project milestones
+- Notification preferences
+- Notifications
+- Reminder jobs
+- PDF processing jobs
+- Proposed academic changes
+- Change history
+
+Use proper:
+- Foreign keys
+- Constraints
+- Indexes
+- Timestamps
+- Ownership fields
+- Cascading-delete rules where appropriate
+
+Avoid storing unnecessary duplicated information.
+
+## Authentication and ownership
+
+Implement secure authentication.
+
+Every private academic record must be associated with its owner.
+
+Use Row Level Security policies that prevent users from reading or modifying another user's records.
+
+Do not rely only on frontend checks for data security.
+
+Recorded project members do not automatically receive access to project data.
+
+## PDF processing
+
+Use appropriate PDF parsing and OCR libraries for the supported file types.
+
+Keep extraction logic separate from UI components.
+
+Implement validation, errors, retries, and processing status.
+
+## AI provider abstraction
+
+Place AI calls behind a server-side interface.
+
+Use schema-validated structured outputs.
+
+Keep API keys and secrets out of browser code.
+
+Make the AI provider replaceable without rewriting the application.
+
+## Local persistence and cross-device synchronisation
+
+Persist user data in the database.
+
+Use suitable local caching if beneficial.
+
+Handle:
+- Network failures
+- Retry states
+- Concurrent edits
+- Time-zone differences
+- Stale data
+- Duplicate requests
+- Authentication expiry
+
+Do not claim full offline functionality unless the required flows have been implemented and tested.
+
+---
+
+# 21. RELIABILITY AND DATA INTEGRITY
+
+All core features must behave predictably.
+
+## Important rules
+
+- Do not create duplicate classes when the same PDF is imported repeatedly.
+- Do not duplicate assignments when an action is retried.
+- Do not silently delete existing events.
+- Do not mark topics complete automatically.
+- Do not lose completed topic records when editing a chapter.
+- Do not reset progress when changing a subject's display name.
+- Do not move locked events during scheduling.
+- Do not create duplicate notifications.
+- Do not save unreviewed AI changes as confirmed records.
+- Do not silently change time zones.
+- Do not allow malformed recurrence rules to generate unlimited events.
+- Do not permanently delete important data without clear confirmation.
+
+Use transactions for operations that update multiple related records.
+
+Provide undo or restoration where practical.
+
+Create sensible conflict-resolution rules for records edited on multiple devices.
+
+---
+
+# 22. ACCESSIBILITY AND RESPONSIVE DESIGN
+
+Support:
+- Desktop
+- Tablet
+- Mobile browsers
+- Keyboard navigation
+- Visible focus indicators
+- Accessible labels
+- Screen-reader-friendly controls
+- Sufficient colour contrast
+- Touch-friendly interactive areas
+- Reduced-motion preferences
+
+Do not communicate status using colour alone.
+
+Every important icon button must have an accessible name.
+
+Ensure the calendar and timetable remain usable on small screens.
+
+Use responsive tables or alternate list views for complex data.
+
+Maintain readable typography at all supported sizes.
+
+---
+
+# 23. LOADING, ERROR, AND EMPTY STATES
+
+Every data-driven page must handle:
+- Initial loading
+- Empty data
+- Search with no results
+- Network failure
+- Authentication expiry
+- Invalid user input
+- PDF parsing failure
+- OCR failure
+- AI extraction failure
+- Database write failure
+- Permission denial
+- Notification permission denial
+- Invalid import data
+- Conflicting events
+- Duplicate records
+
+Use clear, concise explanations and provide a sensible next action.
+
+Never display fake successful results when an operation has failed.
+
+Use skeleton loading states where useful, and preserve user input when possible after errors.
+
+Provide onboarding guidance when the user has not yet added subjects, timetable events, assignments, or exams.
+
+---
+
+# 24. TESTING AND QUALITY ASSURANCE
+
+Implement automated tests for critical functionality.
+
+## Unit tests
+
+Test:
+- Syllabus completion calculations
+- Chapter progress
+- Subject progress
+- Overall progress
+- Date and time calculations
+- Recurring timetable rules
+- Deadline detection
+- Notification timing
+- Duplicate detection
+- Project progress calculations
+- Import validation
+
+## Integration tests
+
+Test:
+- Authentication
+- Database ownership
+- Subject creation and editing
+- Timetable creation and recurring events
+- PDF extraction review
+- Syllabus confirmation
+- Assignment lifecycle
+- Project task assignment
+- Examination creation
+- Reminder creation and delivery logic
+- Backup and restore
+- Change approval and undo
+
+## End-to-end tests
+
+Verify that a student can:
+
+1. Create an account.
+2. Add subjects.
+3. Upload and review a timetable PDF.
+4. View classes in a weekly timetable.
+5. Upload a syllabus PDF.
+6. Correct and save chapters and topics.
+7. Track syllabus completion.
+8. Create homework and assignments.
+9. Create a project with team members and roles.
+10. Assign project tasks.
+11. Upload a hall ticket PDF.
+12. Review and confirm examination dates.
+13. Receive correctly scheduled reminders.
+14. View academic progress.
+15. Export and restore structured records.
+16. Use the application on mobile and desktop.
+
+---
+
+# 25. IMPLEMENTATION ROADMAP
+
+Implement the application incrementally while preserving the final architecture.
+
+## Phase 1 — Foundation
+
+Build:
+- Design system
+- Responsive application layout
+- Authentication
+- Database schema
+- Profile and settings
+- Subjects and syllabus checklists
+- Basic Home dashboard
+
+Deliverable: a functional application with persistent academic data.
+
+## Phase 2 — Timetable
+
+Build:
+- Day and week views
+- Manual class management
+- Recurring classes
+- Rotating timetables
+- Conflict detection
+- Timetable PDF import
+- Extraction review and confirmation
+
+Deliverable: reliable class timetable management.
+
+## Phase 3 — Assignments and projects
+
+Build:
+- Assignment manager
+- Homework tracking
+- Assignment subtasks
+- Deadline views
+- Projects
+- Team members and roles
+- Project tasks
+- Project milestones
+- Progress calculations
+
+Deliverable: complete academic task and project tracking.
+
+## Phase 4 — Exams and study tasks
+
+Build:
+- Hall ticket PDF processing
+- Examination tracker
+- Exam countdowns
+- Syllabus-to-exam linkage
+- Study tasks
+- Revision tracking
+- Optional focus timer
+
+Deliverable: a connected academic planning workflow.
+
+## Phase 5 — Notifications and micro-features
+
+Build:
+- Notification centre
+- Reminder scheduler
+- Supported browser push notifications
+- Quiet hours
+- Daily and weekly summaries
+- Global search
+- Quick-add
+- Undo
+- Archive
+- Data export and restore
+- Dark mode
+
+Deliverable: a polished daily-use experience.
+
+## Phase 6 — AI-assisted extraction and refinement
+
+Complete and harden:
+- PDF text extraction
+- OCR fallback where supported
+- AI-assisted structured extraction
+- Proposed change sets
+- User approval
+- Change history
+- Error handling
+- Security review
+- Accessibility testing
+- Performance optimisation
+- Automated tests
+
+Deliverable: a reliable, production-oriented academic tracker.
+
+If AI extraction is required in an earlier phase, implement the narrow extraction interface then, while continuing to build the rest of the application independently.
+
+---
+
+# 26. ACCEPTANCE CRITERIA
+
+The initial production-ready release must satisfy the following:
+
+1. Users can create accounts and access only their own academic records.
+2. Users can create, edit, archive, and manage subjects.
+3. Users can organise a syllabus into chapters and topics.
+4. Syllabus progress is calculated correctly.
+5. Users can upload, review, and confirm timetable PDF extraction.
+6. Recurring and rotating class schedules work correctly.
+7. Timetable conflicts are detected.
+8. Users can create and manage homework and assignments.
+9. Assignment statuses distinguish completed from submitted.
+10. Users can create projects and record team members and roles.
+11. Project tasks can be assigned to recorded members.
+12. Project milestones and progress are tracked correctly.
+13. Users can upload, review, and confirm hall ticket PDF extraction.
+14. Examinations appear in chronological and calendar views.
+15. Study tasks and revision reminders work correctly.
+16. Notifications respect user preferences and do not duplicate unnecessarily.
+17. AI-generated updates require appropriate user review and approval.
+18. Original hall tickets are not retained by default.
+19. Users can export and restore structured academic data.
+20. The app works without an AI provider for core operations.
+21. The interface works on desktop, tablet, and mobile.
+22. Loading, error, empty, and permission-denied states are implemented.
+23. Important operations are covered by automated tests.
+24. No major feature is merely decorative or represented by fake data.
+
+---
+
+# 27. FINAL EXECUTION INSTRUCTIONS
+
+Before writing the application, establish:
+
+1. The design system and visual direction.
+2. The application route structure.
+3. The database schema and ownership model.
+4. The component architecture.
+5. The core data relationships.
+6. The PDF-processing workflow.
+7. The deterministic scheduling and progress-calculation logic.
+8. The notification architecture.
+
+Then implement the actual application in coherent, testable increments.
+
+Use realistic sample data only in an explicitly labelled demo mode. Never mix fabricated sample data with the student's real records.
+
+Do not build every feature as a separate disconnected page. The application must feel like one cohesive academic workspace.
+
+Prioritise the syllabus tracker, timetable, assignments, and examinations as the central experience. Projects, notifications, and micro-features should integrate naturally into those workflows.
+
+Keep the code modular, maintainable, secure, and ready for deployment.
+
+Do not substitute static mockups for working functionality.
+
+Do not invent successful API responses, PDF extraction results, notification deliveries, or database persistence.
+
+If an external service requires credentials or configuration, implement the supported integration path and clearly document what must be configured.
+
+The final result must be a polished, fully functional, privacy-conscious academic planning product.
+
+**MODULUS — Structure Your Semester.**
