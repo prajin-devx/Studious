@@ -40,7 +40,7 @@ export function GlobalSearchModal({ isOpen, onClose, onNavigate }: GlobalSearchM
   // Search aggregations
   const results: Array<{
     id: string;
-    type: 'subject' | 'topic' | 'class' | 'assignment' | 'project' | 'exam' | 'mark' | 'studyTask';
+    type: 'subject' | 'topic' | 'class' | 'assignment' | 'project' | 'exam' | 'mark' | 'studyTask' | 'action';
     title: string;
     subtitle: string;
     navTab: string;
@@ -162,6 +162,30 @@ export function GlobalSearchModal({ isOpen, onClose, onNavigate }: GlobalSearchM
           icon: Timer,
         });
       });
+
+    // Official Transcript action
+    if ('transcript'.includes(q) || 'grade card'.includes(q) || 'gpa'.includes(q) || 'report card'.includes(q)) {
+      results.push({
+        id: 'action-transcript',
+        type: 'action',
+        title: 'Official Semester Transcript & Grade Card',
+        subtitle: 'View, print, or download certified GPA statement (Press P)',
+        navTab: 'marks',
+        icon: Award,
+      });
+    }
+
+    // Attendance & Bunk Margin action
+    if ('attendance'.includes(q) || 'bunk'.includes(q) || 'shortage'.includes(q) || 'threshold'.includes(q)) {
+      results.push({
+        id: 'action-bunk',
+        type: 'action',
+        title: 'Attendance & Safe Bunk Calculator',
+        subtitle: 'Track 75% policy minimum and simulate safe skips (Press B)',
+        navTab: 'subjects',
+        icon: BookOpen,
+      });
+    }
   }
 
   const handleSelect = (navTab: string) => {

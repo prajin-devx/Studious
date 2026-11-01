@@ -21,6 +21,9 @@ export const SAMPLE_SUBJECTS: Subject[] = [
     instructor: 'Dr. Evelyn Reed',
     color: '#3B82F6', // Blue
     credits: 4,
+    attendanceAttended: 27,
+    attendanceTotal: 30,
+    minAttendanceRequired: 75,
     isArchived: false,
   },
   {
@@ -31,6 +34,9 @@ export const SAMPLE_SUBJECTS: Subject[] = [
     instructor: 'Prof. Marcus Vance',
     color: '#10B981', // Emerald
     credits: 4,
+    attendanceAttended: 21,
+    attendanceTotal: 26,
+    minAttendanceRequired: 75,
     isArchived: false,
   },
   {
@@ -41,6 +47,9 @@ export const SAMPLE_SUBJECTS: Subject[] = [
     instructor: 'Dr. Priya Sharma',
     color: '#8B5CF6', // Purple
     credits: 3,
+    attendanceAttended: 23,
+    attendanceTotal: 25,
+    minAttendanceRequired: 75,
     isArchived: false,
   },
   {
@@ -51,6 +60,9 @@ export const SAMPLE_SUBJECTS: Subject[] = [
     instructor: 'Prof. David Lin',
     color: '#F59E0B', // Amber
     credits: 3,
+    attendanceAttended: 18,
+    attendanceTotal: 25,
+    minAttendanceRequired: 75,
     isArchived: false,
   },
 ];

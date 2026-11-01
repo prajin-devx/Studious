@@ -26,6 +26,9 @@ export interface Subject {
   instructor?: string;
   color: string;
   credits?: number;
+  attendanceAttended?: number;
+  attendanceTotal?: number;
+  minAttendanceRequired?: number;
   isArchived?: boolean;
   createdAt?: string;
   updatedAt?: string;

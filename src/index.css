@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 :root {
-  /* Default base font size increased from 16px to 18px for clear, comfortable readability */
+  /* Default base font size increased for clear, comfortable readability */
   font-size: 18px;
 }
 
@@ -46,8 +46,37 @@ html[data-font-size="huge"] {
   }
 }
 
+/* Studio Dark ambient mesh styling with subtle indigo/violet glow */
 body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
+  background-color: #09090b;
+  background-image: 
+    radial-gradient(circle at 50% 0%, rgba(99, 102, 241, 0.08) 0%, rgba(139, 92, 246, 0.03) 30%, transparent 65%),
+    radial-gradient(circle at 100% 100%, rgba(99, 102, 241, 0.04) 0%, transparent 50%);
+  background-attachment: fixed;
+  font-variant-numeric: tabular-nums;
+}
+
+/* High-resolution print styles for academic transcripts and grade reports */
+@media print {
+  body {
+    background: #ffffff !important;
+    background-image: none !important;
+    color: #000000 !important;
+  }
+
+  aside,
+  header,
+  nav,
+  .print\:hidden {
+    display: none !important;
+  }
+
+  main {
+    padding: 0 !important;
+    margin: 0 !important;
+    overflow: visible !important;
+  }
 }

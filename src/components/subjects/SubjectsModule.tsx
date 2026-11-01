@@ -16,12 +16,15 @@ import {
   Printer,
   X,
   FileText,
+  Calendar,
 } from 'lucide-react';
 import { useAcademic } from '../../context/AcademicContext';
 import {
   calculateSubjectProgress,
   calculateChapterProgress,
 } from '../../utils/academicCalculations';
+import { calculateBunkMargin } from '../../utils/attendanceCalculations';
+import { AttendanceBunkModal } from '../modals/AttendanceBunkModal';
 import { Subject, TopicStatus } from '../../types';
 
 interface SubjectsModuleProps {
@@ -54,6 +57,8 @@ export function SubjectsModule({ onOpenPdfImport, onOpenQuickAdd }: SubjectsModu
   const [topicSearch, setTopicSearch] = useState<string>('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'incomplete' | 'needs_revision'>('all');
   const [showArchived, setShowArchived] = useState<boolean>(false);
+  const [isAttendanceModalOpen, setIsAttendanceModalOpen] = useState<boolean>(false);
+  const [attendanceModalSubjId, setAttendanceModalSubjId] = useState<string>('');
 
   // Modals for subject/chapter/topic creation
   const [showNewChapterModal, setShowNewChapterModal] = useState<boolean>(false);
@@ -214,6 +219,33 @@ export function SubjectsModule({ onOpenPdfImport, onOpenQuickAdd }: SubjectsModu
                 {currentSubject.credits ? `${currentSubject.credits} Credits • ` : ''}
                 {currentChapters.length} Chapters total
               </p>
+              {(() => {
+                const attRes = calculateBunkMargin(
+                  currentSubject.attendanceAttended ?? 24,
+                  currentSubject.attendanceTotal ?? 28,
+                  currentSubject.minAttendanceRequired || 75
+                );
+                return (
+                  <button
+                    onClick={() => {
+                      setAttendanceModalSubjId(currentSubject.id);
+                      setIsAttendanceModalOpen(true);
+                    }}
+                    className="flex items-center gap-2 px-3 py-1 bg-zinc-800/80 hover:bg-zinc-700/80 border border-zinc-700/80 rounded-xl text-xs font-medium text-zinc-200 transition-colors mt-2"
+                  >
+                    <Calendar className="w-3.5 h-3.5 text-emerald-400" />
+                    <span>
+                      Attendance: <strong className="font-mono text-zinc-100">{attRes.currentPercentage}%</strong> (
+                      {attRes.status === 'safe'
+                        ? `${attRes.safeBunksAvailable} Safe Bunks`
+                        : attRes.status === 'warning'
+                        ? '0 Bunks (Borderline)'
+                        : `Shortage: Must attend ${attRes.classesNeededToRecover}`}
+                      )
+                    </span>
+                  </button>
+                );
+              })()}
             </div>
 
             {/* Subject Level Progress */}
@@ -607,6 +639,11 @@ export function SubjectsModule({ onOpenPdfImport, onOpenQuickAdd }: SubjectsModu
           </div>
         </div>
       )}
+      <AttendanceBunkModal
+        isOpen={isAttendanceModalOpen}
+        onClose={() => setIsAttendanceModalOpen(false)}
+        initialSubjectId={attendanceModalSubjId}
+      />
     </div>
   );
 }

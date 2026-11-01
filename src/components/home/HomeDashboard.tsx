@@ -14,6 +14,7 @@ import {
   CheckSquare,
   Award,
   Plus,
+  FileText,
 } from 'lucide-react';
 import { useAcademic } from '../../context/AcademicContext';
 import {
@@ -24,6 +25,12 @@ import {
   timeStringToMinutes,
 } from '../../utils/academicCalculations';
 import { calculateMarksSummary } from '../../utils/marksCalculations';
+import {
+  calculateOverallAttendance,
+  calculateBunkMargin,
+} from '../../utils/attendanceCalculations';
+import { AcademicTranscriptModal } from '../modals/AcademicTranscriptModal';
+import { AttendanceBunkModal } from '../modals/AttendanceBunkModal';
 
 interface HomeDashboardProps {
   onNavigate: (tab: string) => void;
@@ -50,6 +57,11 @@ export function HomeDashboard({
     toggleStudyTask,
     setAssignmentStatus,
   } = useAcademic();
+
+  const [isTranscriptOpen, setIsTranscriptOpen] = React.useState<boolean>(false);
+  const [isAttendanceOpen, setIsAttendanceOpen] = React.useState<boolean>(false);
+
+  const overallAttendance = calculateOverallAttendance(subjects);
 
   const marksSummary = calculateMarksSummary(testMarks);
   const recentMarks = [...testMarks]
@@ -158,13 +170,33 @@ export function HomeDashboard({
             </div>
           )}
 
-          <button
-            onClick={() => onOpenQuickAdd('task')}
-            className="flex items-center gap-1.5 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-sm font-semibold transition-colors shadow-lg shadow-indigo-600/20 shrink-0"
-          >
-            <Plus className="w-4 h-4" />
-            <span>New Task</span>
-          </button>
+          <div className="flex items-center gap-2 flex-wrap">
+            <button
+              onClick={() => setIsTranscriptOpen(true)}
+              className="flex items-center gap-1.5 px-3 py-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border border-zinc-700 rounded-xl text-xs sm:text-sm font-semibold transition-colors shrink-0 shadow-xs"
+              title="View Official Semester Transcript & Grade Card"
+            >
+              <FileText className="w-4 h-4 text-indigo-400" />
+              <span className="hidden sm:inline">Transcript</span>
+            </button>
+
+            <button
+              onClick={() => setIsAttendanceOpen(true)}
+              className="flex items-center gap-1.5 px-3 py-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border border-zinc-700 rounded-xl text-xs sm:text-sm font-semibold transition-colors shrink-0 shadow-xs"
+              title="Attendance & Safe Bunk Margins"
+            >
+              <Calendar className="w-4 h-4 text-emerald-400" />
+              <span className="hidden sm:inline">Bunk Margin</span>
+            </button>
+
+            <button
+              onClick={() => onOpenQuickAdd('task')}
+              className="flex items-center gap-1.5 px-3.5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs sm:text-sm font-semibold transition-colors shadow-lg shadow-indigo-600/20 shrink-0"
+            >
+              <Plus className="w-4 h-4" />
+              <span>New Task</span>
+            </button>
+          </div>
         </div>
       </div>
 
@@ -600,8 +632,79 @@ export function HomeDashboard({
               </div>
             )}
           </div>
+
+          {/* Attendance & Safe Bunk Margin Widget */}
+          <div className="p-5 bg-zinc-900 border border-zinc-800 rounded-2xl space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Calendar className="w-5 h-5 text-emerald-400" />
+                <h2 className="text-base font-semibold text-zinc-100">Attendance & Bunks</h2>
+              </div>
+              <button
+                onClick={() => setIsAttendanceOpen(true)}
+                className="text-sm text-indigo-400 hover:text-indigo-300 font-medium"
+              >
+                Bunk Calculator
+              </button>
+            </div>
+
+            <div className="p-3.5 bg-zinc-800/50 border border-zinc-700/60 rounded-xl space-y-2.5">
+              <div className="flex items-center justify-between">
+                <div>
+                  <span className="text-xs text-zinc-400 block">Semester Average</span>
+                  <span className="text-xl font-black font-mono text-zinc-100">
+                    {overallAttendance.overallPercentage}%
+                  </span>
+                </div>
+                <div className="text-right">
+                  <span
+                    className={`text-xs font-bold px-2 py-0.5 rounded border ${
+                      overallAttendance.status === 'safe'
+                        ? 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20'
+                        : overallAttendance.status === 'warning'
+                        ? 'text-amber-400 bg-amber-500/10 border-amber-500/20'
+                        : 'text-rose-400 bg-rose-500/10 border-rose-500/20'
+                    }`}
+                  >
+                    {overallAttendance.status === 'safe' ? 'Good Standing' : 'At Risk'}
+                  </span>
+                  <span className="text-xs text-zinc-400 block mt-0.5">
+                    {overallAttendance.totalAttended} / {overallAttendance.totalHeld} attended
+                  </span>
+                </div>
+              </div>
+
+              <div className="w-full bg-zinc-800 h-2 rounded-full overflow-hidden">
+                <div
+                  className={`h-full rounded-full transition-all duration-500 ${
+                    overallAttendance.status === 'safe'
+                      ? 'bg-emerald-500'
+                      : overallAttendance.status === 'warning'
+                      ? 'bg-amber-500'
+                      : 'bg-rose-500'
+                  }`}
+                  style={{ width: `${Math.min(100, overallAttendance.overallPercentage)}%` }}
+                />
+              </div>
+
+              <p className="text-xs text-zinc-300">
+                Minimum policy threshold is 75%. Click to simulate safe bunks across your courses.
+              </p>
+            </div>
+          </div>
         </div>
       </div>
+
+      {/* Global Academic Modals */}
+      <AcademicTranscriptModal
+        isOpen={isTranscriptOpen}
+        onClose={() => setIsTranscriptOpen(false)}
+      />
+
+      <AttendanceBunkModal
+        isOpen={isAttendanceOpen}
+        onClose={() => setIsAttendanceOpen(false)}
+      />
     </div>
   );
 }

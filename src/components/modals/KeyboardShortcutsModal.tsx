@@ -38,6 +38,8 @@ export function KeyboardShortcutsModal({
         { keys: ['C'], label: 'Quick Add Record', description: 'Open Quick-Add dialog for marks, tasks, notes, or assignments' },
         { keys: ['T'], label: 'Focus Timer', description: 'Open Pomodoro revision focus timer' },
         { keys: ['I'], label: 'Import Academic PDF', description: 'Import syllabus, timetable, or exam hall ticket' },
+        { keys: ['P'], label: 'Official Semester Transcript', description: 'Open printable certified academic transcript & grade card' },
+        { keys: ['B'], label: 'Attendance & Bunk Calculator', description: 'Calculate safe bunks and attendance recovery margins' },
         { keys: ['?'], label: 'Shortcuts Cheat Sheet', description: 'Show this keyboard guide' },
         { keys: ['Esc'], label: 'Dismiss / Close Modal', description: 'Close any active drawer or modal' },
       ],

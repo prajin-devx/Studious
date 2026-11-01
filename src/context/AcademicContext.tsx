@@ -89,6 +89,8 @@ interface AcademicContextType {
   // Subjects
   addSubject: (subj: Omit<Subject, 'id'>) => Promise<string>;
   updateSubject: (id: string, updates: Partial<Subject>) => Promise<void>;
+  updateSubjectAttendance: (id: string, attended: number, total: number, minReq?: number) => Promise<void>;
+  quickMarkAttendance: (id: string, present: boolean) => Promise<void>;
   deleteSubject: (id: string) => Promise<void>;
   archiveSubject: (id: string, isArchived: boolean) => Promise<void>;
 
@@ -462,6 +464,34 @@ export function AcademicProvider({ children }: { children: ReactNode }) {
     addToast({
       type: 'info',
       title: isArchived ? 'Subject Archived' : 'Subject Restored',
+    });
+  };
+
+  const updateSubjectAttendance = async (
+    id: string,
+    attended: number,
+    total: number,
+    minReq: number = 75
+  ) => {
+    await updateSubject(id, {
+      attendanceAttended: Math.max(0, attended),
+      attendanceTotal: Math.max(0, total),
+      minAttendanceRequired: minReq,
+    });
+  };
+
+  const quickMarkAttendance = async (id: string, present: boolean) => {
+    const subj = subjects.find((s) => s.id === id);
+    if (!subj) return;
+    const currentAttended = subj.attendanceAttended ?? 0;
+    const currentTotal = subj.attendanceTotal ?? 0;
+    const newAttended = present ? currentAttended + 1 : currentAttended;
+    const newTotal = currentTotal + 1;
+    await updateSubjectAttendance(id, newAttended, newTotal, subj.minAttendanceRequired || 75);
+    addToast({
+      type: present ? 'success' : 'warning',
+      title: present ? 'Class Marked Attended' : 'Class Marked Absent (Bunked)',
+      message: `${subj.name}: ${newAttended}/${newTotal} classes (${((newAttended / newTotal) * 100).toFixed(1)}%)`,
     });
   };
 
@@ -1156,6 +1186,8 @@ export function AcademicProvider({ children }: { children: ReactNode }) {
 
         addSubject,
         updateSubject,
+        updateSubjectAttendance,
+        quickMarkAttendance,
         deleteSubject,
         archiveSubject,
 

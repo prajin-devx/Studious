@@ -24,6 +24,8 @@ import { FocusTimerModal } from './components/modals/FocusTimerModal';
 import { PdfImportModal } from './components/modals/PdfImportModal';
 import { NotificationDrawer } from './components/notifications/NotificationDrawer';
 import { KeyboardShortcutsModal } from './components/modals/KeyboardShortcutsModal';
+import { AcademicTranscriptModal } from './components/modals/AcademicTranscriptModal';
+import { AttendanceBunkModal } from './components/modals/AttendanceBunkModal';
 
 function AppContent() {
   const { toasts, removeToast } = useAcademic();
@@ -39,6 +41,8 @@ function AppContent() {
   const [isPdfImportOpen, setIsPdfImportOpen] = useState(false);
   const [pdfImportDocType, setPdfImportDocType] = useState<any>('timetable');
   const [isShortcutsOpen, setIsShortcutsOpen] = useState(false);
+  const [isTranscriptOpen, setIsTranscriptOpen] = useState(false);
+  const [isAttendanceOpen, setIsAttendanceOpen] = useState(false);
 
   // Key sequence buffer for two-stroke shortcuts (e.g. 'g' then 'h')
   const gSequenceRef = useRef<boolean>(false);
@@ -71,6 +75,8 @@ function AppContent() {
         setIsNotificationsOpen(false);
         setIsPdfImportOpen(false);
         setIsShortcutsOpen(false);
+        setIsTranscriptOpen(false);
+        setIsAttendanceOpen(false);
         gSequenceRef.current = false;
         return;
       }
@@ -81,6 +87,20 @@ function AppContent() {
       if (e.key === '?' || (e.shiftKey && e.key === '/')) {
         e.preventDefault();
         setIsShortcutsOpen((prev) => !prev);
+        return;
+      }
+
+      // 'p' or Cmd+P opens Official Semester Transcript
+      if ((e.key.toLowerCase() === 'p' && !e.altKey) || ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'p')) {
+        e.preventDefault();
+        setIsTranscriptOpen(true);
+        return;
+      }
+
+      // 'b' opens Attendance & Bunk Margin Calculator
+      if (e.key.toLowerCase() === 'b' && !e.metaKey && !e.ctrlKey && !e.altKey) {
+        e.preventDefault();
+        setIsAttendanceOpen(true);
         return;
       }
 
@@ -283,6 +303,16 @@ function AppContent() {
         isOpen={isShortcutsOpen}
         onClose={() => setIsShortcutsOpen(false)}
         onNavigate={setCurrentTab}
+      />
+
+      <AcademicTranscriptModal
+        isOpen={isTranscriptOpen}
+        onClose={() => setIsTranscriptOpen(false)}
+      />
+
+      <AttendanceBunkModal
+        isOpen={isAttendanceOpen}
+        onClose={() => setIsAttendanceOpen(false)}
       />
 
       {/* Floating Toast Alerts */}

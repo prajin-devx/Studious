@@ -17,6 +17,7 @@ import {
   Sparkles,
   BarChart3,
   Percent,
+  FileText,
 } from 'lucide-react';
 import { useAcademic } from '../../context/AcademicContext';
 import { TestMark, TestType } from '../../types';
@@ -27,6 +28,7 @@ import {
   calculateTargetNeeded,
   GradeInfo,
 } from '../../utils/marksCalculations';
+import { AcademicTranscriptModal } from '../modals/AcademicTranscriptModal';
 
 interface MarksModuleProps {
   onNavigate?: (tab: string) => void;
@@ -58,6 +60,7 @@ export function MarksModule({ onNavigate }: MarksModuleProps) {
   // Target Calculator Simulator State
   const [desiredTargetPercent, setDesiredTargetPercent] = useState<number>(85);
   const [remainingWeightage, setRemainingWeightage] = useState<number>(40);
+  const [showTranscriptModal, setShowTranscriptModal] = useState<boolean>(false);
 
   // Filtered marks
   const filteredMarks = useMemo(() => {
@@ -256,6 +259,16 @@ export function MarksModule({ onNavigate }: MarksModuleProps) {
             <Calculator className="w-4 h-4 text-indigo-400" />
             <span className="hidden sm:inline">Target Simulator</span>
             <span className="sm:hidden">Target</span>
+          </button>
+
+          <button
+            onClick={() => setShowTranscriptModal(true)}
+            className="flex items-center gap-2 px-3.5 py-2.5 bg-zinc-900 hover:bg-zinc-800 text-zinc-300 border border-zinc-700 rounded-xl text-sm font-medium transition-colors"
+            title="Generate Official Printable Semester Transcript & Grade Card"
+          >
+            <FileText className="w-4 h-4 text-indigo-400" />
+            <span className="hidden sm:inline">Official Transcript</span>
+            <span className="sm:hidden">Transcript</span>
           </button>
 
           <button
@@ -977,6 +990,10 @@ export function MarksModule({ onNavigate }: MarksModuleProps) {
           </div>
         </div>
       )}
+      <AcademicTranscriptModal
+        isOpen={showTranscriptModal}
+        onClose={() => setShowTranscriptModal(false)}
+      />
     </div>
   );
 }
