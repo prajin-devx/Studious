@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { useAcademic } from '../../context/AcademicContext';
 import { CloudSyncHealthPopover } from './CloudSyncHealthPopover';
+import { AuthModal } from '../modals/AuthModal';
 
 interface NavbarProps {
   onOpenSearch: () => void;
@@ -32,8 +33,17 @@ export function Navbar({
   onOpenShortcuts,
   onOpenSettings,
 }: NavbarProps) {
-  const { user, isCloudSyncing, signInWithGoogle, signOutUser, notifications } =
-    useAcademic();
+  const {
+    user,
+    isCloudSyncing,
+    syncStatus,
+    isOnline,
+    signInWithGoogle,
+    signOutUser,
+    notifications,
+    isAuthModalOpen,
+    setIsAuthModalOpen,
+  } = useAcademic();
 
   const [isSyncHealthOpen, setIsSyncHealthOpen] = useState(false);
 
@@ -137,18 +147,40 @@ export function Navbar({
           <button
             onClick={() => setIsSyncHealthOpen(true)}
             aria-label="Cloud Sync & Health Status"
-            title="Cloud Sync & Storage Health"
+            title={`Sync Status: ${syncStatus.toUpperCase()} • Click for Details`}
             className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 rounded-xl transition-colors min-h-[38px]"
           >
             <Cloud
               className={`w-3.5 h-3.5 ${
-                isCloudSyncing ? 'text-indigo-400 animate-spin' : user ? 'text-emerald-400' : 'text-blue-400'
+                !isOnline
+                  ? 'text-amber-400'
+                  : isCloudSyncing
+                  ? 'text-indigo-400 animate-spin'
+                  : user
+                  ? 'text-emerald-400'
+                  : 'text-blue-400'
               }`}
             />
             <span className="hidden lg:inline text-zinc-300">
-              {isCloudSyncing ? 'Syncing...' : user ? 'Cloud Synced' : 'Local Cache'}
+              {!isOnline
+                ? 'Offline (Queued)'
+                : isCloudSyncing
+                ? 'Syncing...'
+                : user
+                ? 'Cloud Synced'
+                : 'Local Cache'}
             </span>
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0" />
+            <span
+              className={`w-1.5 h-1.5 rounded-full shrink-0 ${
+                !isOnline
+                  ? 'bg-amber-400'
+                  : isCloudSyncing
+                  ? 'bg-indigo-400 animate-ping'
+                  : user
+                  ? 'bg-emerald-400'
+                  : 'bg-blue-400'
+              }`}
+            />
           </button>
 
           {/* Keyboard Shortcuts Trigger Button */}
@@ -167,8 +199,28 @@ export function Navbar({
           {user ? (
             <div className="flex items-center gap-1.5">
               <button
+                onClick={() => setIsAuthModalOpen(true)}
+                title={`Signed in as ${user.displayName || user.email} • Click for Account Details`}
+                className="flex items-center gap-2 px-2.5 py-1.5 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 rounded-xl transition-colors min-h-[38px] group"
+              >
+                {user.photoURL ? (
+                  <img
+                    src={user.photoURL}
+                    alt={user.displayName || 'User'}
+                    className="w-5 h-5 rounded-full object-cover border border-zinc-700"
+                  />
+                ) : (
+                  <div className="w-5 h-5 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-[10px] font-bold text-white uppercase shadow-sm">
+                    {(user.displayName || user.email || 'U')[0]}
+                  </div>
+                )}
+                <span className="text-xs font-medium text-zinc-200 hidden sm:inline max-w-[100px] truncate">
+                  {user.displayName?.split(' ')[0] || user.email?.split('@')[0]}
+                </span>
+              </button>
+              <button
                 onClick={signOutUser}
-                title={`Signed in as ${user.email} • Click to Sign Out`}
+                title={`Sign out of ${user.email}`}
                 aria-label="Sign Out"
                 className="p-2 text-zinc-400 hover:text-rose-400 bg-zinc-900 border border-zinc-800 rounded-xl transition-colors min-w-[38px] min-h-[38px] flex items-center justify-center"
               >
@@ -177,8 +229,8 @@ export function Navbar({
             </div>
           ) : (
             <button
-              onClick={signInWithGoogle}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 rounded-xl text-sm font-medium text-zinc-200 transition-colors min-h-[38px]"
+              onClick={() => setIsAuthModalOpen(true)}
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-blue-600/20 to-indigo-600/20 hover:from-blue-600/30 hover:to-indigo-600/30 border border-blue-500/30 hover:border-blue-500/50 rounded-xl text-sm font-medium text-blue-200 transition-colors min-h-[38px] shadow-sm shadow-blue-500/10"
             >
               <LogIn className="w-4 h-4 text-blue-400 shrink-0" />
               <span className="hidden sm:inline">Sign In</span>
@@ -192,6 +244,12 @@ export function Navbar({
         isOpen={isSyncHealthOpen}
         onClose={() => setIsSyncHealthOpen(false)}
         onOpenSettings={onOpenSettings}
+      />
+
+      {/* Google & Academic Cloud Authentication Modal */}
+      <AuthModal
+        isOpen={isAuthModalOpen}
+        onClose={() => setIsAuthModalOpen(false)}
       />
     </>
   );

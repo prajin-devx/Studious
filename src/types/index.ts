@@ -4,6 +4,14 @@ export type AssignmentPriority = 'low' | 'medium' | 'high' | 'urgent';
 export type ProjectStatus = 'planned' | 'in_progress' | 'on_hold' | 'completed' | 'archived';
 export type ProjectTaskStatus = 'not_started' | 'in_progress' | 'completed';
 
+export interface AcademicUser {
+  uid: string;
+  email: string | null;
+  displayName: string | null;
+  photoURL?: string | null;
+  isAnonymous?: boolean;
+}
+
 export interface UserProfile {
   userId: string;
   name: string;

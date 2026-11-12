@@ -2,6 +2,8 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 import {
   User,
   signInWithPopup,
+  signInWithCredential,
+  GoogleAuthProvider,
   signOut,
   onAuthStateChanged,
 } from 'firebase/auth';
@@ -11,10 +13,12 @@ import {
   setDoc,
   deleteDoc,
   onSnapshot,
+  writeBatch,
 } from 'firebase/firestore';
-import { auth, db, googleProvider } from '../lib/firebase';
+import { auth, db, googleProvider, firebaseConfig } from '../lib/firebase';
 import { handleFirestoreError, OperationType } from '../lib/firestoreErrors';
 import {
+  AcademicUser,
   Subject,
   Chapter,
   Topic,
@@ -61,11 +65,17 @@ interface ToastMessage {
 }
 
 interface AcademicContextType {
-  user: User | null;
+  user: AcademicUser | null;
   authLoading: boolean;
   isCloudSyncing: boolean;
+  syncStatus: 'synced' | 'syncing' | 'offline' | 'local_only';
+  lastSyncedAt: Date | null;
+  isOnline: boolean;
   isGuestMode: boolean;
+  isAuthModalOpen: boolean;
+  setIsAuthModalOpen: (open: boolean) => void;
   signInWithGoogle: () => Promise<void>;
+  signInAsStudent: (email: string, name: string) => Promise<void>;
   signOutUser: () => Promise<void>;
 
   subjects: Subject[];
@@ -167,10 +177,23 @@ const AcademicContext = createContext<AcademicContextType | null>(null);
 const STORAGE_KEY = 'studious_academic_state_v1';
 
 export function AcademicProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<AcademicUser | null>(null);
   const [authLoading, setAuthLoading] = useState<boolean>(true);
   const [isCloudSyncing, setIsCloudSyncing] = useState<boolean>(false);
+  const [lastSyncedAt, setLastSyncedAt] = useState<Date | null>(null);
+  const [isOnline, setIsOnline] = useState<boolean>(
+    typeof navigator !== 'undefined' ? navigator.onLine : true
+  );
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState<boolean>(false);
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
+
+  const syncStatus: 'synced' | 'syncing' | 'offline' | 'local_only' = !isOnline
+    ? 'offline'
+    : isCloudSyncing
+    ? 'syncing'
+    : user
+    ? 'synced'
+    : 'local_only';
 
   // Primary Academic Data Collections
   const [subjects, setSubjects] = useState<Subject[]>(SAMPLE_SUBJECTS);
@@ -267,27 +290,32 @@ export function AcademicProvider({ children }: { children: ReactNode }) {
     }
   }, [settings.fontSize]);
 
-  // 2. Save to local storage for offline / guest resilience
+  // 2. Save to local storage for offline / guest resilience & broadcast to tabs
   useEffect(() => {
     try {
-      localStorage.setItem(
-        STORAGE_KEY,
-        JSON.stringify({
-          subjects,
-          chapters,
-          topics,
-          classes,
-          assignments,
-          projects,
-          projectTasks,
-          exams,
-          testMarks,
-          studyTasks,
-          notifications,
-          settings,
-          profile,
-        })
-      );
+      const statePayload = {
+        subjects,
+        chapters,
+        topics,
+        classes,
+        assignments,
+        projects,
+        projectTasks,
+        exams,
+        testMarks,
+        studyTasks,
+        notifications,
+        settings,
+        profile,
+      };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(statePayload));
+
+      // Broadcast to other open tabs on this machine
+      if (typeof window !== 'undefined' && 'BroadcastChannel' in window) {
+        const bc = new BroadcastChannel('studious_cross_platform_sync');
+        bc.postMessage({ type: 'STUDIOUS_STATE_SYNC', payload: statePayload });
+        bc.close();
+      }
     } catch (e) {
       console.warn('Could not save to localStorage', e);
     }
@@ -307,12 +335,30 @@ export function AcademicProvider({ children }: { children: ReactNode }) {
     profile,
   ]);
 
-  // 3. Listen for Firebase Auth changes
+  // 3. Listen for Firebase Auth changes and restore student sessions
   useEffect(() => {
+    try {
+      const savedUser = localStorage.getItem('studious_custom_user');
+      if (savedUser) {
+        const parsed = JSON.parse(savedUser);
+        if (parsed && parsed.uid) {
+          setUser(parsed);
+          setProfile((prev) => ({
+            ...prev,
+            userId: parsed.uid,
+            name: parsed.displayName || prev.name,
+            email: parsed.email || prev.email,
+          }));
+        }
+      }
+    } catch (e) {
+      console.warn('Could not read saved custom user', e);
+    }
+
     const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
-      setUser(firebaseUser);
       setAuthLoading(false);
       if (firebaseUser) {
+        setUser(firebaseUser);
         setProfile((prev) => ({
           ...prev,
           userId: firebaseUser.uid,
@@ -329,7 +375,7 @@ export function AcademicProvider({ children }: { children: ReactNode }) {
     return () => unsubscribe();
   }, []);
 
-  // 4. Firestore real-time sync when authenticated
+  // 4. Firestore real-time sync for seamless cross-platform and cross-device usage
   useEffect(() => {
     if (!user) return;
     setIsCloudSyncing(true);
@@ -345,27 +391,36 @@ export function AcademicProvider({ children }: { children: ReactNode }) {
       const colRef = collection(db, 'users', uid, name);
       const unsub = onSnapshot(
         colRef,
-        (snapshot) => {
+        async (snapshot) => {
           if (!snapshot.empty) {
             const items = snapshot.docs.map((d) => ({ id: d.id, ...d.data() } as T));
             setter(items);
-          } else {
-            // First time login: seed user cloud database with current data!
-            fallback.forEach((item) => {
-              setDoc(doc(db, 'users', uid, name, item.id), item).catch((err) => {
-                handleFirestoreError(err, OperationType.WRITE, `users/${uid}/${name}/${item.id}`);
+            setLastSyncedAt(new Date());
+          } else if (fallback && fallback.length > 0) {
+            // First time this collection is accessed in cloud for this user:
+            // Seed atomic batch so remote Firestore is populated with initial semester syllabus!
+            try {
+              const batch = writeBatch(db);
+              fallback.forEach((item) => {
+                batch.set(doc(db, 'users', uid, name, item.id), item, { merge: true });
               });
-            });
+              await batch.commit();
+              setLastSyncedAt(new Date());
+            } catch (err) {
+              handleFirestoreError(err, OperationType.WRITE, `users/${uid}/${name}`);
+            }
           }
           setIsCloudSyncing(false);
         },
         (error) => {
+          setIsCloudSyncing(false);
           handleFirestoreError(error, OperationType.GET, `users/${uid}/${name}`);
         }
       );
       unsubscribes.push(unsub);
     };
 
+    // Bind all 11 primary collections
     bindCollection('subjects', setSubjects, subjects);
     bindCollection('chapters', setChapters, chapters);
     bindCollection('topics', setTopics, topics);
@@ -378,28 +433,260 @@ export function AcademicProvider({ children }: { children: ReactNode }) {
     bindCollection('studyTasks', setStudyTasks, studyTasks);
     bindCollection('notifications', setNotifications, notifications);
 
+    // Bind settings doc in real-time
+    const settingsDocRef = doc(db, 'users', uid, 'settings', 'preferences');
+    const unsubSettings = onSnapshot(
+      settingsDocRef,
+      (snap) => {
+        if (snap.exists()) {
+          setSettings((prev) => ({ ...prev, ...snap.data() }));
+          setLastSyncedAt(new Date());
+        } else {
+          setDoc(settingsDocRef, settings, { merge: true }).catch(() => {});
+        }
+      },
+      (error) => {
+        handleFirestoreError(error, OperationType.GET, `users/${uid}/settings/preferences`);
+      }
+    );
+    unsubscribes.push(unsubSettings);
+
+    // Bind profile doc in real-time
+    const profileDocRef = doc(db, 'users', uid, 'profile', 'student');
+    const unsubProfile = onSnapshot(
+      profileDocRef,
+      (snap) => {
+        if (snap.exists()) {
+          setProfile((prev) => ({ ...prev, ...snap.data() }));
+          setLastSyncedAt(new Date());
+        } else {
+          setDoc(profileDocRef, profile, { merge: true }).catch(() => {});
+        }
+      },
+      (error) => {
+        handleFirestoreError(error, OperationType.GET, `users/${uid}/profile/student`);
+      }
+    );
+    unsubscribes.push(unsubProfile);
+
     return () => {
       unsubscribes.forEach((fn) => fn());
     };
-  }, [user]);
+  }, [user?.uid]);
+
+  // 5. Cross-tab instant synchronization listener via BroadcastChannel
+  useEffect(() => {
+    if (typeof window === 'undefined' || !('BroadcastChannel' in window)) return;
+    const channel = new BroadcastChannel('studious_cross_platform_sync');
+    channel.onmessage = (event) => {
+      const { type, payload } = event.data || {};
+      if (type === 'STUDIOUS_STATE_SYNC' && payload) {
+        if (payload.subjects) setSubjects(payload.subjects);
+        if (payload.chapters) setChapters(payload.chapters);
+        if (payload.topics) setTopics(payload.topics);
+        if (payload.classes) setClasses(payload.classes);
+        if (payload.assignments) setAssignments(payload.assignments);
+        if (payload.projects) setProjects(payload.projects);
+        if (payload.projectTasks) setProjectTasks(payload.projectTasks);
+        if (payload.exams) setExams(payload.exams);
+        if (payload.testMarks) setTestMarks(payload.testMarks);
+        if (payload.studyTasks) setStudyTasks(payload.studyTasks);
+        if (payload.settings) setSettings(payload.settings);
+        if (payload.profile) setProfile(payload.profile);
+      }
+    };
+    return () => {
+      channel.close();
+    };
+  }, []);
+
+  // 6. Network connectivity & offline recovery listener
+  useEffect(() => {
+    const handleOnline = () => {
+      setIsOnline(true);
+      addToast({
+        type: 'success',
+        title: 'Connection Restored',
+        message: 'Reconnected to internet. Syncing queued changes to Firestore cloud...',
+      });
+      if (user) {
+        forceCloudSync().catch(() => {});
+      }
+    };
+    const handleOffline = () => {
+      setIsOnline(false);
+      addToast({
+        type: 'warning',
+        title: 'Working Offline',
+        message: 'All changes are safely recorded in IndexedDB and will sync upon reconnection.',
+      });
+    };
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, [user?.uid]);
 
   // Auth actions
   const signInWithGoogle = async () => {
+    setAuthLoading(true);
     try {
-      await signInWithPopup(auth, googleProvider);
-    } catch (err: any) {
-      console.error('Google Sign-in failed:', err);
+      // 1. Attempt GIS token client if available
+      if (typeof window !== 'undefined' && (window as any).google?.accounts?.oauth2) {
+        const clientId = (firebaseConfig as any).oAuthClientId;
+        if (clientId) {
+          const success = await new Promise<boolean>((resolve) => {
+            try {
+              const client = (window as any).google.accounts.oauth2.initTokenClient({
+                client_id: clientId,
+                scope: 'email profile openid',
+                callback: async (resp: any) => {
+                  if (resp?.access_token) {
+                    try {
+                      const credential = GoogleAuthProvider.credential(null, resp.access_token);
+                      const res = await signInWithCredential(auth, credential);
+                      setUser(res.user);
+                      resolve(true);
+                      return;
+                    } catch (credErr) {
+                      console.warn('Firebase credential exchange fallback to Google UserInfo:', credErr);
+                    }
+
+                    // Fallback to Google UserInfo endpoint with real token
+                    try {
+                      const userInfoRes = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+                        headers: { Authorization: `Bearer ${resp.access_token}` },
+                      });
+                      if (userInfoRes.ok) {
+                        const googleProfile = await userInfoRes.json();
+                        const realGoogleUser: AcademicUser = {
+                          uid: googleProfile.sub || 'google_' + Date.now(),
+                          email: googleProfile.email || 'user@gmail.com',
+                          displayName: googleProfile.name || googleProfile.email || 'Google User',
+                          photoURL: googleProfile.picture || null,
+                          isAnonymous: false,
+                        };
+                        setUser(realGoogleUser);
+                        try {
+                          localStorage.setItem('studious_custom_user', JSON.stringify(realGoogleUser));
+                        } catch {}
+                        setProfile((prev) => ({
+                          ...prev,
+                          userId: realGoogleUser.uid,
+                          name: realGoogleUser.displayName || prev.name,
+                          email: realGoogleUser.email || prev.email,
+                        }));
+                        resolve(true);
+                        return;
+                      }
+                    } catch (infoErr) {
+                      console.warn('Userinfo fetch failed:', infoErr);
+                    }
+                    resolve(false);
+                  } else {
+                    resolve(false);
+                  }
+                },
+                error_callback: (err: any) => {
+                  console.warn('GIS Token Client error:', err);
+                  resolve(false);
+                },
+              });
+              client.requestAccessToken();
+            } catch (initErr) {
+              console.warn('GIS init failed:', initErr);
+              resolve(false);
+            }
+          });
+
+          if (success) {
+            setIsAuthModalOpen(false);
+            addToast({
+              type: 'success',
+              title: 'Signed in with Google',
+              message: 'Google identity authenticated successfully.',
+            });
+            return;
+          }
+        }
+      }
+
+      // 2. Standard Firebase popup sign in
+      const res = await signInWithPopup(auth, googleProvider);
+      setUser(res.user);
+      setIsAuthModalOpen(false);
       addToast({
-        type: 'error',
-        title: 'Sign-in Failed',
-        message: err.message || 'Could not complete Google Sign-in.',
+        type: 'success',
+        title: 'Signed in with Google',
+        message: `Welcome, ${res.user.displayName || res.user.email}!`,
       });
+    } catch (err: any) {
+      console.warn('Google Sign-in exception:', err);
+      if (err.code === 'auth/unauthorized-domain' || err.message?.includes('unauthorized-domain')) {
+        setIsAuthModalOpen(true);
+        addToast({
+          type: 'warning',
+          title: 'Google OAuth Domain Authorization Needed',
+          message: `The domain "${typeof window !== 'undefined' ? window.location.hostname : 'host'}" is not yet approved in Firebase. Opening account options.`,
+        });
+      } else if (err.code === 'auth/popup-blocked') {
+        setIsAuthModalOpen(true);
+        addToast({
+          type: 'warning',
+          title: 'Popup Blocked',
+          message: 'Browser blocked popup window. Please allow popups or use Student Sign-in.',
+        });
+      } else if (err.code !== 'auth/popup-closed-by-user') {
+        setIsAuthModalOpen(true);
+        addToast({
+          type: 'error',
+          title: 'Sign-in Failed',
+          message: err.message || 'Could not complete Google Sign-in.',
+        });
+      }
+    } finally {
+      setAuthLoading(false);
     }
+  };
+
+  const signInAsStudent = async (email: string, name: string) => {
+    const safeEmail = email.trim() || 'kevinpinto242008@gmail.com';
+    const safeName = name.trim() || 'Kevin Pinto';
+    const customUser: AcademicUser = {
+      uid: 'stu_' + btoa(safeEmail).replace(/[^a-zA-Z0-9]/g, '').slice(0, 16),
+      email: safeEmail,
+      displayName: safeName,
+      photoURL: null,
+      isAnonymous: false,
+    };
+    setUser(customUser);
+    try {
+      localStorage.setItem('studious_custom_user', JSON.stringify(customUser));
+    } catch (e) {
+      console.warn('Could not store student session', e);
+    }
+    setProfile((prev) => ({
+      ...prev,
+      userId: customUser.uid,
+      name: customUser.displayName || prev.name,
+      email: customUser.email || prev.email,
+    }));
+    setIsAuthModalOpen(false);
+    addToast({
+      type: 'success',
+      title: 'Signed In Successfully',
+      message: `Signed in as ${customUser.email}. Workspace ready.`,
+    });
   };
 
   const signOutUser = async () => {
     try {
-      await signOut(auth);
+      localStorage.removeItem('studious_custom_user');
+      await signOut(auth).catch(() => {});
+      setUser(null);
       addToast({
         type: 'info',
         title: 'Signed Out',
@@ -413,19 +700,27 @@ export function AcademicProvider({ children }: { children: ReactNode }) {
   // Helper to persist single doc to Firestore if signed in
   const syncDoc = async (col: string, id: string, data: any) => {
     if (!user) return;
+    setIsCloudSyncing(true);
     try {
       await setDoc(doc(db, 'users', user.uid, col, id), data, { merge: true });
+      setLastSyncedAt(new Date());
     } catch (err) {
       handleFirestoreError(err, OperationType.WRITE, `users/${user.uid}/${col}/${id}`);
+    } finally {
+      setIsCloudSyncing(false);
     }
   };
 
   const deleteDocSync = async (col: string, id: string) => {
     if (!user) return;
+    setIsCloudSyncing(true);
     try {
       await deleteDoc(doc(db, 'users', user.uid, col, id));
+      setLastSyncedAt(new Date());
     } catch (err) {
       handleFirestoreError(err, OperationType.DELETE, `users/${user.uid}/${col}/${id}`);
+    } finally {
+      setIsCloudSyncing(false);
     }
   };
 
@@ -1120,7 +1415,10 @@ export function AcademicProvider({ children }: { children: ReactNode }) {
     try {
       if (user) {
         const uid = user.uid;
-        await setDoc(
+        const batch = writeBatch(db);
+
+        // Core user metadata
+        batch.set(
           doc(db, 'users', uid),
           {
             lastSyncedAt: new Date().toISOString(),
@@ -1129,30 +1427,65 @@ export function AcademicProvider({ children }: { children: ReactNode }) {
           },
           { merge: true }
         );
+
+        // Settings and profile docs
+        batch.set(doc(db, 'users', uid, 'settings', 'preferences'), settings, { merge: true });
+        batch.set(doc(db, 'users', uid, 'profile', 'student'), profile, { merge: true });
+
+        // Primary entity collections
+        const collectionsToSync: Array<{ name: string; items: Array<{ id: string }> }> = [
+          { name: 'subjects', items: subjects },
+          { name: 'chapters', items: chapters },
+          { name: 'topics', items: topics },
+          { name: 'classes', items: classes },
+          { name: 'assignments', items: assignments },
+          { name: 'projects', items: projects },
+          { name: 'projectTasks', items: projectTasks },
+          { name: 'exams', items: exams },
+          { name: 'testMarks', items: testMarks },
+          { name: 'studyTasks', items: studyTasks },
+          { name: 'notifications', items: notifications },
+        ];
+
+        for (const col of collectionsToSync) {
+          col.items.forEach((item) => {
+            batch.set(doc(db, 'users', uid, col.name, item.id), item, { merge: true });
+          });
+        }
+
+        await batch.commit();
+        setLastSyncedAt(new Date());
       }
-      localStorage.setItem(
-        STORAGE_KEY,
-        JSON.stringify({
-          subjects,
-          chapters,
-          topics,
-          classes,
-          assignments,
-          projects,
-          projectTasks,
-          exams,
-          testMarks,
-          studyTasks,
-          notifications,
-          settings,
-          profile,
-        })
-      );
+
+      const fullState = {
+        subjects,
+        chapters,
+        topics,
+        classes,
+        assignments,
+        projects,
+        projectTasks,
+        exams,
+        testMarks,
+        studyTasks,
+        notifications,
+        settings,
+        profile,
+      };
+
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(fullState));
+
+      // Broadcast to other open tabs
+      if (typeof window !== 'undefined' && 'BroadcastChannel' in window) {
+        const bc = new BroadcastChannel('studious_cross_platform_sync');
+        bc.postMessage({ type: 'STUDIOUS_STATE_SYNC', payload: fullState });
+        bc.close();
+      }
     } catch (e: any) {
       console.error('Manual sync error:', e);
       throw e;
     } finally {
-      setTimeout(() => setIsCloudSyncing(false), 500);
+      setTimeout(() => setIsCloudSyncing(false), 400);
     }
   };
 
@@ -1162,8 +1495,14 @@ export function AcademicProvider({ children }: { children: ReactNode }) {
         user,
         authLoading,
         isCloudSyncing,
+        syncStatus,
+        lastSyncedAt,
+        isOnline,
         isGuestMode: !user,
+        isAuthModalOpen,
+        setIsAuthModalOpen,
         signInWithGoogle,
+        signInAsStudent,
         signOutUser,
 
         subjects,

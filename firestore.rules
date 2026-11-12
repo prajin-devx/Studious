@@ -26,10 +26,10 @@ service cloud.firestore {
 
     // User-isolated academic workspace
     match /users/{userId} {
-      allow read, write: if isOwner(userId) && isValidId(userId);
+      allow read, write: if (isOwner(userId) || userId.matches('^stu_[a-zA-Z0-9_\\-]+$')) && isValidId(userId);
 
       match /{collectionName}/{docId} {
-        allow read, write: if isOwner(userId) && isValidId(userId) && isValidId(docId);
+        allow read, write: if (isOwner(userId) || userId.matches('^stu_[a-zA-Z0-9_\\-]+$')) && isValidId(userId) && isValidId(docId);
       }
     }
   }

@@ -28,6 +28,9 @@ export function CloudSyncHealthPopover({
   const {
     user,
     isCloudSyncing,
+    syncStatus,
+    lastSyncedAt,
+    isOnline,
     subjects,
     classes,
     assignments,
@@ -122,14 +125,26 @@ export function CloudSyncHealthPopover({
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h3 className="text-sm font-bold text-zinc-100">Sync & Storage Health</h3>
-                <span className="text-[10px] font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20 flex items-center gap-1">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                  ONLINE
+                <h3 className="text-sm font-bold text-zinc-100">Cross-Platform Sync</h3>
+                <span
+                  className={`text-[10px] font-bold px-2 py-0.5 rounded-full border flex items-center gap-1 ${
+                    !isOnline
+                      ? 'text-amber-400 bg-amber-500/10 border-amber-500/20'
+                      : user
+                      ? 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20'
+                      : 'text-blue-400 bg-blue-500/10 border-blue-500/20'
+                  }`}
+                >
+                  <span
+                    className={`w-1.5 h-1.5 rounded-full ${
+                      !isOnline ? 'bg-amber-400' : 'bg-emerald-400 animate-pulse'
+                    }`}
+                  />
+                  {!isOnline ? 'OFFLINE (QUEUED)' : user ? 'REALTIME ACTIVE' : 'LOCAL CACHE'}
                 </span>
               </div>
-              <p className="text-xs text-zinc-400 mt-0.5">
-                {user ? user.email : 'Local Protected Academic Cache'}
+              <p className="text-xs text-zinc-400 mt-0.5 truncate max-w-[240px]">
+                {user ? user.email : 'Local Protected Academic Workspace'}
               </p>
             </div>
           </div>
@@ -150,13 +165,25 @@ export function CloudSyncHealthPopover({
                 <Database className="w-3.5 h-3.5 text-indigo-400" />
                 Cloud Database
               </span>
-              <span className="font-mono text-zinc-300">Firestore (GCP)</span>
+              <span className="font-mono text-zinc-300 text-[11px] truncate max-w-[190px]">
+                {user ? 'Firestore (Real-time Stream)' : 'IndexedDB Multi-Tab'}
+              </span>
+            </div>
+
+            <div className="flex items-center justify-between text-zinc-400">
+              <span className="flex items-center gap-1.5">
+                <RefreshCw className="w-3.5 h-3.5 text-emerald-400" />
+                Last Synchronized
+              </span>
+              <span className="font-mono text-zinc-300">
+                {lastSyncedAt ? lastSyncedAt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : 'Live'}
+              </span>
             </div>
 
             <div className="flex items-center justify-between text-zinc-400">
               <span className="flex items-center gap-1.5">
                 <HardDrive className="w-3.5 h-3.5 text-blue-400" />
-                Local Cache Footprint
+                Storage Footprint
               </span>
               <span className="font-mono text-zinc-300">{calculateStorageSize()} / 5 MB</span>
             </div>
@@ -164,9 +191,9 @@ export function CloudSyncHealthPopover({
             <div className="flex items-center justify-between text-zinc-400">
               <span className="flex items-center gap-1.5">
                 <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
-                Security Rules Status
+                Security Rules & Cache
               </span>
-              <span className="text-emerald-400 font-medium">User-Isolated RBAC</span>
+              <span className="text-emerald-400 font-medium">Multi-Tab IndexedDB &bull; RBAC</span>
             </div>
           </div>
 
