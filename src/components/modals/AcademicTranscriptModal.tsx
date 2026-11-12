@@ -113,12 +113,12 @@ export function AcademicTranscriptModal({
 
   const handleExportJson = () => {
     const transcriptData = {
-      institution: profile.institution || 'State Institute of Technology',
+      institution: profile.institution || 'Academic Institution',
       studentName: profile.name,
       studentEmail: user?.email || profile.email,
-      degree: profile.degree || 'Bachelor of Technology (Computer Science & Engineering)',
-      semester: profile.semester || 'Semester 5',
-      academicTerm: profile.academicTerm || 'Fall/Winter 2026',
+      degree: profile.degree || 'Academic Degree Program',
+      semester: profile.semester || 'Current Semester',
+      academicTerm: profile.academicTerm || 'Academic Year',
       dateGenerated: new Date().toISOString(),
       sgpa,
       totalCredits,
@@ -249,7 +249,7 @@ export function AcademicTranscriptModal({
                 </div>
                 <div>
                   <h1 className="text-xl sm:text-2xl font-black uppercase tracking-tight text-zinc-100 print:text-black">
-                    {profile.institution || 'State Institute of Technology'}
+                    {profile.institution || 'Academic Institution'}
                   </h1>
                   <p className="text-xs text-zinc-400 print:text-zinc-600 font-medium">
                     Office of Academic Records & Semester Examination Controller
@@ -285,19 +285,19 @@ export function AcademicTranscriptModal({
               <div>
                 <span className="text-zinc-400 print:text-zinc-500 font-medium block">Program</span>
                 <span className="font-bold text-zinc-100 print:text-black text-sm truncate block">
-                  {profile.degree || 'B.Tech CS Engineering'}
+                  {profile.degree || 'Undergraduate Degree'}
                 </span>
               </div>
               <div>
                 <span className="text-zinc-400 print:text-zinc-500 font-medium block">Semester & Term</span>
                 <span className="font-bold text-zinc-100 print:text-black text-sm">
-                  {profile.semester || 'Semester 5'} ({profile.academicTerm || 'Fall 2026'})
+                  {profile.semester || 'Semester 1'} {profile.academicTerm ? `(${profile.academicTerm})` : ''}
                 </span>
               </div>
               <div>
                 <span className="text-zinc-400 print:text-zinc-500 font-medium block">Student ID / Roll</span>
                 <span className="font-bold font-mono text-indigo-400 print:text-black text-sm">
-                  STU-2026-CS8821
+                  STU-{new Date().getFullYear()}-{(profile.userId || 'DEV').slice(-4).toUpperCase()}
                 </span>
               </div>
             </div>

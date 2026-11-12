@@ -195,18 +195,18 @@ export function AcademicProvider({ children }: { children: ReactNode }) {
     ? 'synced'
     : 'local_only';
 
-  // Primary Academic Data Collections
-  const [subjects, setSubjects] = useState<Subject[]>(SAMPLE_SUBJECTS);
-  const [chapters, setChapters] = useState<Chapter[]>(SAMPLE_CHAPTERS);
-  const [topics, setTopics] = useState<Topic[]>(SAMPLE_TOPICS);
-  const [classes, setClasses] = useState<ClassEvent[]>(SAMPLE_CLASSES);
-  const [assignments, setAssignments] = useState<Assignment[]>(SAMPLE_ASSIGNMENTS);
-  const [projects, setProjects] = useState<Project[]>(SAMPLE_PROJECTS);
-  const [projectTasks, setProjectTasks] = useState<ProjectTask[]>(SAMPLE_PROJECT_TASKS);
-  const [exams, setExams] = useState<Exam[]>(SAMPLE_EXAMS);
-  const [testMarks, setTestMarks] = useState<TestMark[]>(SAMPLE_TEST_MARKS);
-  const [studyTasks, setStudyTasks] = useState<StudyTask[]>(SAMPLE_STUDY_TASKS);
-  const [notifications, setNotifications] = useState<NotificationItem[]>(SAMPLE_NOTIFICATIONS);
+  // Primary Academic Data Collections (clean empty state by default)
+  const [subjects, setSubjects] = useState<Subject[]>([]);
+  const [chapters, setChapters] = useState<Chapter[]>([]);
+  const [topics, setTopics] = useState<Topic[]>([]);
+  const [classes, setClasses] = useState<ClassEvent[]>([]);
+  const [assignments, setAssignments] = useState<Assignment[]>([]);
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [projectTasks, setProjectTasks] = useState<ProjectTask[]>([]);
+  const [exams, setExams] = useState<Exam[]>([]);
+  const [testMarks, setTestMarks] = useState<TestMark[]>([]);
+  const [studyTasks, setStudyTasks] = useState<StudyTask[]>([]);
+  const [notifications, setNotifications] = useState<NotificationItem[]>([]);
 
   const [deviceNotificationPermission, setDeviceNotificationPermission] = useState<
     NotificationPermission | 'unsupported'
@@ -230,12 +230,12 @@ export function AcademicProvider({ children }: { children: ReactNode }) {
 
   const [profile, setProfile] = useState<UserProfile>({
     userId: 'guest_user',
-    name: 'Alex Rivera',
-    email: 'alex.rivera@university.edu',
-    institution: 'State Institute of Technology',
-    degree: 'B.S. Computer Science & Engineering',
-    semester: 'Semester 5 (Fall/Winter)',
-    academicTerm: '2026-2027 Academic Year',
+    name: 'Kevin Pinto',
+    email: 'kevinpinto242008@gmail.com',
+    institution: '',
+    degree: '',
+    semester: 'Semester 1',
+    academicTerm: '',
     timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC',
   });
 
@@ -251,25 +251,36 @@ export function AcademicProvider({ children }: { children: ReactNode }) {
     setToasts((prev) => prev.filter((t) => t.id !== id));
   };
 
-  // 1. Load local cache on mount if available
+  // 1. Load local cache on mount if available (with legacy demo data auto-purge)
   useEffect(() => {
     try {
       const cached = localStorage.getItem(STORAGE_KEY);
       if (cached) {
         const parsed = JSON.parse(cached);
-        if (parsed.subjects?.length) setSubjects(parsed.subjects);
-        if (parsed.chapters?.length) setChapters(parsed.chapters);
-        if (parsed.topics?.length) setTopics(parsed.topics);
-        if (parsed.classes?.length) setClasses(parsed.classes);
-        if (parsed.assignments?.length) setAssignments(parsed.assignments);
-        if (parsed.projects?.length) setProjects(parsed.projects);
-        if (parsed.projectTasks?.length) setProjectTasks(parsed.projectTasks);
-        if (parsed.exams?.length) setExams(parsed.exams);
-        if (parsed.testMarks?.length) setTestMarks(parsed.testMarks);
-        if (parsed.studyTasks?.length) setStudyTasks(parsed.studyTasks);
-        if (parsed.notifications?.length) setNotifications(parsed.notifications);
-        if (parsed.settings) setSettings(parsed.settings);
-        if (parsed.profile) setProfile(parsed.profile);
+        const hasLegacyDemo =
+          parsed.profile?.name === 'Alex Rivera' ||
+          parsed.profile?.email === 'alex.rivera@university.edu' ||
+          parsed.subjects?.some(
+            (s: any) => s.id === 'sub-cs301' || s.code === 'CS301' || s.name === 'Operating Systems'
+          );
+
+        if (hasLegacyDemo) {
+          localStorage.removeItem(STORAGE_KEY);
+        } else {
+          if (parsed.subjects?.length) setSubjects(parsed.subjects);
+          if (parsed.chapters?.length) setChapters(parsed.chapters);
+          if (parsed.topics?.length) setTopics(parsed.topics);
+          if (parsed.classes?.length) setClasses(parsed.classes);
+          if (parsed.assignments?.length) setAssignments(parsed.assignments);
+          if (parsed.projects?.length) setProjects(parsed.projects);
+          if (parsed.projectTasks?.length) setProjectTasks(parsed.projectTasks);
+          if (parsed.exams?.length) setExams(parsed.exams);
+          if (parsed.testMarks?.length) setTestMarks(parsed.testMarks);
+          if (parsed.studyTasks?.length) setStudyTasks(parsed.studyTasks);
+          if (parsed.notifications?.length) setNotifications(parsed.notifications);
+          if (parsed.settings) setSettings(parsed.settings);
+          if (parsed.profile) setProfile(parsed.profile);
+        }
       }
     } catch (e) {
       console.warn('Error reading local cache', e);
@@ -385,8 +396,7 @@ export function AcademicProvider({ children }: { children: ReactNode }) {
 
     const bindCollection = <T extends { id: string }>(
       name: string,
-      setter: React.Dispatch<React.SetStateAction<T[]>>,
-      fallback: T[]
+      setter: React.Dispatch<React.SetStateAction<T[]>>
     ) => {
       const colRef = collection(db, 'users', uid, name);
       const unsub = onSnapshot(
@@ -396,19 +406,8 @@ export function AcademicProvider({ children }: { children: ReactNode }) {
             const items = snapshot.docs.map((d) => ({ id: d.id, ...d.data() } as T));
             setter(items);
             setLastSyncedAt(new Date());
-          } else if (fallback && fallback.length > 0) {
-            // First time this collection is accessed in cloud for this user:
-            // Seed atomic batch so remote Firestore is populated with initial semester syllabus!
-            try {
-              const batch = writeBatch(db);
-              fallback.forEach((item) => {
-                batch.set(doc(db, 'users', uid, name, item.id), item, { merge: true });
-              });
-              await batch.commit();
-              setLastSyncedAt(new Date());
-            } catch (err) {
-              handleFirestoreError(err, OperationType.WRITE, `users/${uid}/${name}`);
-            }
+          } else {
+            setter([]);
           }
           setIsCloudSyncing(false);
         },
@@ -421,17 +420,17 @@ export function AcademicProvider({ children }: { children: ReactNode }) {
     };
 
     // Bind all 11 primary collections
-    bindCollection('subjects', setSubjects, subjects);
-    bindCollection('chapters', setChapters, chapters);
-    bindCollection('topics', setTopics, topics);
-    bindCollection('classes', setClasses, classes);
-    bindCollection('assignments', setAssignments, assignments);
-    bindCollection('projects', setProjects, projects);
-    bindCollection('projectTasks', setProjectTasks, projectTasks);
-    bindCollection('exams', setExams, exams);
-    bindCollection('testMarks', setTestMarks, testMarks);
-    bindCollection('studyTasks', setStudyTasks, studyTasks);
-    bindCollection('notifications', setNotifications, notifications);
+    bindCollection('subjects', setSubjects);
+    bindCollection('chapters', setChapters);
+    bindCollection('topics', setTopics);
+    bindCollection('classes', setClasses);
+    bindCollection('assignments', setAssignments);
+    bindCollection('projects', setProjects);
+    bindCollection('projectTasks', setProjectTasks);
+    bindCollection('exams', setExams);
+    bindCollection('testMarks', setTestMarks);
+    bindCollection('studyTasks', setStudyTasks);
+    bindCollection('notifications', setNotifications);
 
     // Bind settings doc in real-time
     const settingsDocRef = doc(db, 'users', uid, 'settings', 'preferences');
@@ -1380,18 +1379,19 @@ export function AcademicProvider({ children }: { children: ReactNode }) {
   };
 
   const resetToSampleData = () => {
-    setSubjects(SAMPLE_SUBJECTS);
-    setChapters(SAMPLE_CHAPTERS);
-    setTopics(SAMPLE_TOPICS);
-    setClasses(SAMPLE_CLASSES);
-    setAssignments(SAMPLE_ASSIGNMENTS);
-    setProjects(SAMPLE_PROJECTS);
-    setProjectTasks(SAMPLE_PROJECT_TASKS);
-    setExams(SAMPLE_EXAMS);
-    setTestMarks(SAMPLE_TEST_MARKS);
-    setStudyTasks(SAMPLE_STUDY_TASKS);
-    setNotifications(SAMPLE_NOTIFICATIONS);
-    addToast({ type: 'info', title: 'Sample Data Loaded', message: 'Restored standard university semester syllabus & timetable.' });
+    setSubjects([]);
+    setChapters([]);
+    setTopics([]);
+    setClasses([]);
+    setAssignments([]);
+    setProjects([]);
+    setProjectTasks([]);
+    setExams([]);
+    setTestMarks([]);
+    setStudyTasks([]);
+    setNotifications([]);
+    localStorage.removeItem(STORAGE_KEY);
+    addToast({ type: 'info', title: 'Clean Workspace', message: 'All demo data removed. Ready for your actual classes.' });
   };
 
   const clearAllData = async () => {

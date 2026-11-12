@@ -35,6 +35,7 @@ export function Navbar({
 }: NavbarProps) {
   const {
     user,
+    profile,
     isCloudSyncing,
     syncStatus,
     isOnline,
@@ -66,7 +67,7 @@ export function Navbar({
                 PRO
               </span>
             </div>
-            <span className="text-xs text-zinc-400 font-medium leading-none">Semester 5</span>
+            <span className="text-xs text-zinc-400 font-medium leading-none">{profile.semester || 'Academic Portal'}</span>
           </div>
         </div>
 

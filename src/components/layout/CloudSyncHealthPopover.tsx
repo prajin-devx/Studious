@@ -27,6 +27,7 @@ export function CloudSyncHealthPopover({
 }: CloudSyncHealthPopoverProps) {
   const {
     user,
+    profile,
     isCloudSyncing,
     syncStatus,
     lastSyncedAt,
@@ -106,7 +107,7 @@ export function CloudSyncHealthPopover({
   };
 
   const handleExportIcs = () => {
-    downloadCalendarIcs(classes, 'Semester 5');
+    downloadCalendarIcs(classes, profile.semester || 'Semester');
     addToast({
       type: 'success',
       title: 'Calendar ICS Exported',

@@ -69,7 +69,7 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
     }
     setIsSubmittingStudent(true);
     try {
-      await signInAsStudent(studentEmail.trim(), studentName.trim() || 'Alex Rivera');
+      await signInAsStudent(studentEmail.trim(), studentName.trim() || 'Kevin Pinto');
       onClose();
     } finally {
       setIsSubmittingStudent(false);

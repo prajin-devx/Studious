@@ -110,10 +110,10 @@ export function Sidebar({ currentTab, onSelectTab, onOpenShortcuts }: SidebarPro
             <Building className="w-3.5 h-3.5 text-zinc-400 shrink-0" />
             <div className="truncate">
               <span className="font-semibold text-zinc-200 block truncate">
-                {profile.degree || 'B.Tech CS Engineering'}
+                {profile.degree || profile.institution || 'Academic Workspace'}
               </span>
               <span className="text-[11px] text-zinc-400">
-                {profile.semester || 'Semester 5'} • {profile.academicTerm || 'Fall 2026'}
+                {profile.semester || 'Active Semester'}{profile.academicTerm ? ` • ${profile.academicTerm}` : ''}
               </span>
             </div>
           </div>
